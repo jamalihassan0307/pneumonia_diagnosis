@@ -56,7 +56,7 @@ def register_view(request):
             errors.append('Email already exists')
         
         if errors:
-            return render(request, 'model_service/register.html', {'errors': errors})
+            return render(request, 'register.html', {'errors': errors})
         
         # Create user
         try:
@@ -81,9 +81,9 @@ def register_view(request):
         except Exception as e:
             logger.error(f"Registration error: {str(e)}")
             errors.append('Registration failed. Please try again.')
-            return render(request, 'model_service/register.html', {'errors': errors})
+            return render(request, 'register.html', {'errors': errors})
     
-    return render(request, 'model_service/register.html')
+    return render(request, 'register.html')
 
 
 def login_view(request):
@@ -117,9 +117,9 @@ def login_view(request):
             else:
                 errors.append('Invalid username or password')
         
-        return render(request, 'model_service/login.html', {'errors': errors})
+        return render(request, 'login.html', {'errors': errors})
     
-    return render(request, 'model_service/login.html')
+    return render(request, 'login.html')
 
 
 @login_required(login_url='model_service:login')
@@ -180,7 +180,7 @@ def dashboard_view(request):
         'recent_predictions': recent_predictions,
     }
     
-    return render(request, 'model_service/dashboard.html', context)
+    return render(request, 'dashboard.html', context)
 
 
 # ============================================================================
@@ -195,18 +195,18 @@ def upload_view(request):
     """
     if request.method == 'POST':
         if 'image' not in request.FILES:
-            return render(request, 'model_service/upload.html', 
+            return render(request, 'upload.html', 
                         {'error': 'No image file provided'})
         
         image_file = request.FILES['image']
         
         # Validate file
         if image_file.size > 10 * 1024 * 1024:  # 10 MB limit
-            return render(request, 'model_service/upload.html',
+            return render(request, 'upload.html',
                         {'error': 'File size exceeds 10 MB limit'})
         
         if image_file.content_type not in ['image/jpeg', 'image/png']:
-            return render(request, 'model_service/upload.html',
+            return render(request, 'upload.html',
                         {'error': 'Only JPEG and PNG formats are supported'})
         
         try:
@@ -248,10 +248,10 @@ def upload_view(request):
             
         except Exception as e:
             logger.error(f"Image upload error: {str(e)}")
-            return render(request, 'model_service/upload.html',
+            return render(request, 'upload.html',
                         {'error': 'Failed to process image'})
     
-    return render(request, 'model_service/upload.html')
+    return render(request, 'upload.html')
 
 
 @login_required(login_url='model_service:login')
@@ -274,14 +274,14 @@ def analyze_view(request, image_id):
         
         if diagnosis_result['status'] == 'error':
             logger.warning(f"Diagnosis failed for image {image_id}: {diagnosis_result['errors']}")
-            return render(request, 'model_service/error.html',
+            return render(request, 'error.html',
                         {'error': 'Analysis failed: ' + ', '.join(diagnosis_result['errors'])})
         
         # Save prediction result
         prediction = DiagnosisService.save_prediction_result(xray_image, diagnosis_result)
         
         if prediction is None:
-            return render(request, 'model_service/error.html',
+            return render(request, 'error.html',
                         {'error': 'Failed to save analysis result'})
         
         # Log action
@@ -298,7 +298,7 @@ def analyze_view(request, image_id):
         
     except Exception as e:
         logger.error(f"Analysis error: {str(e)}")
-        return render(request, 'model_service/error.html',
+        return render(request, 'error.html',
                     {'error': 'An error occurred during analysis'})
 
 
@@ -330,13 +330,19 @@ def result_view(request, result_id):
     # Parse raw predictions
     raw_predictions = json.loads(prediction.raw_predictions) if prediction.raw_predictions else {}
     
+    # Check if demo mode
+    demo_mode = False
+    if isinstance(raw_predictions, dict):
+        demo_mode = raw_predictions.get('_demo', False)
+    
     context = {
         'result': prediction,
         'confidence_percentage': prediction.get_confidence_percentage(),
         'raw_predictions': raw_predictions,
+        'demo_mode': demo_mode,
     }
     
-    return render(request, 'model_service/result.html', context)
+    return render(request, 'result.html', context)
 
 
 # ============================================================================
@@ -380,7 +386,7 @@ def history_view(request):
         'search_query': search_query,
     }
     
-    return render(request, 'model_service/history.html', context)
+    return render(request, 'history.html', context)
 
 
 @login_required(login_url='model_service:login')
