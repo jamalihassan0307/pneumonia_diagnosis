@@ -1,0 +1,39 @@
+{% extends 'model_service/base.html' %}
+
+{% block title %}Error - Pneumonia Diagnosis System{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center;">
+    <div style="font-size: 4em; margin: 20px 0;">❌</div>
+    <h1>Oops! An Error Occurred</h1>
+    
+    {% if error %}
+        <div class="alert alert-error" style="max-width: 600px; margin: 20px auto;">
+            {{ error }}
+        </div>
+    {% endif %}
+    
+    <div style="margin: 30px 0;">
+        <a href="{% url 'model_service:dashboard' %}" class="btn btn-primary">🏠 Back to Dashboard</a>
+        <a href="{% url 'model_service:upload' %}" class="btn btn-secondary">📤 Try Again</a>
+    </div>
+    
+    <div style="margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 10px; text-align: left;">
+        <strong>What happened?</strong>
+        <ul>
+            <li>The image file might be corrupted or in an unsupported format</li>
+            <li>The file size might exceed the 10 MB limit</li>
+            <li>There might be a temporary server issue</li>
+            <li>The system might need to be restarted</li>
+        </ul>
+        
+        <strong style="display: block; margin-top: 15px;">How to fix it?</strong>
+        <ul>
+            <li>Check that the image is a valid JPEG or PNG file</li>
+            <li>Ensure the file size is less than 10 MB</li>
+            <li>Try uploading again</li>
+            <li>Contact system administrator if the problem persists</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

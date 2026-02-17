@@ -1,0 +1,62 @@
+{% extends 'model_service/base.html' %}
+
+{% block title %}Upload X-ray - Pneumonia Diagnosis System{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>📤 Upload Chest X-ray Image</h1>
+    
+    {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="image">Select X-ray Image:</label>
+            <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png" required>
+            <small>Supported formats: JPEG, PNG | Maximum size: 10 MB</small>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">🚀 Upload and Analyze</button>
+        <a href="{% url 'model_service:dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+<div class="card">
+    <h2>📋 Upload Guidelines</h2>
+    <ul style="margin-left: 20px;">
+        <li>Image must be a chest X-ray in JPEG or PNG format</li>
+        <li>File size should not exceed 10 MB</li>
+        <li>Image quality should be similar to training dataset</li>
+        <li>Both frontal and lateral views are accepted</li>
+        <li>Image will be preprocessed automatically before analysis</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h2>🔒 Privacy & Security</h2>
+    <ul style="margin-left: 20px;">
+        <li>Uploaded images are processed securely on our servers</li>
+        <li>Images are retained only for the duration of analysis</li>
+        <li>No images are shared with third parties</li>
+        <li>All data is transmitted over encrypted HTTPS connection</li>
+        <li>For HIPAA compliance, use anonymized patient data only</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h2>⚠️ Medical Disclaimer</h2>
+    <p>
+        This system provides preliminary automated analysis of chest X-ray images. 
+        The results are for <strong>clinical support purposes only</strong> and should not be used as:
+    </p>
+    <ul style="margin-left: 20px; color: #721c24;">
+        <li>A definitive diagnosis</li>
+        <li>A replacement for professional medical evaluation</li>
+        <li>The sole basis for treatment decisions</li>
+        <li>A substitute for radiologist review</li>
+    </ul>
+</div>
+{% endblock %}
