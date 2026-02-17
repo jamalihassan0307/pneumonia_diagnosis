@@ -98,6 +98,31 @@
     <h1>✅ Analysis Complete</h1>
 </div>
 
+<!-- DEMO MODE WARNING -->
+{% if demo_mode %}
+<div class="card" style="background: #fff3cd; border-left: 4px solid #ff6b6b; padding: 20px;">
+    <div style="font-size: 1.5em; margin-bottom: 10px;">⚠️ DEMO MODE ACTIVE</div>
+    <p style="color: #d32f2f; font-weight: 600; margin-bottom: 10px;">
+        ⛔ This is NOT actual AI prediction. These results are simulated for demonstration only.
+    </p>
+    <p style="margin-bottom: 10px;">
+        <strong>Why?</strong> TensorFlow is not installed. The AI model cannot load.
+    </p>
+    <p style="margin-bottom: 15px;">
+        <strong>To get REAL predictions:</strong>
+    </p>
+    <ol style="margin-left: 20px;">
+        <li><strong>Install Python 3.11</strong> (TensorFlow doesn't support Python 3.14 yet)</li>
+        <li><strong>Create virtual environment:</strong> <code>python -m venv venv</code></li>
+        <li><strong>Install dependencies:</strong> <code>pip install -r requirements.txt</code></li>
+        <li><strong>Restart Django:</strong> <code>python manage.py runserver</code></li>
+    </ol>
+    <p style="margin-top: 15px; color: #d32f2f;">
+        📖 See <code>TENSORFLOW_SETUP.md</code> for detailed instructions
+    </p>
+</div>
+{% endif %}
+
 <!-- Main Result -->
 <div class="card">
     <div class="prediction-box {% if result.prediction_label == 'PNEUMONIA' %}pneumonia-result{% else %}normal-result{% endif %}">

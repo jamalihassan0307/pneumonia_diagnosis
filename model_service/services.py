@@ -33,26 +33,36 @@ class DemoModeHelper:
     """
     Demo mode prediction when TensorFlow is not available
     Provides realistic predictions for testing without TensorFlow
+    
+    IMPORTANT: This is NOT AI prediction. This is demo mode only.
+    Install TensorFlow for actual pneumonia detection.
     """
     @staticmethod
     def get_demo_prediction(image_path):
-        """Generate realistic demo predictions based on image properties"""
+        """
+        Generate more realistic demo predictions based on image analysis
+        NOT actual AI - for demonstration only
+        """
         try:
-            # Load image to get properties
+            # Load image to analyze
             img = Image.open(image_path)
-            img_array = np.array(img.convert('RGB'))
+            img_array = np.array(img.convert('RGB'), dtype=np.float32)
             
-            # Use image entropy/content to generate "predictions"
-            # This is deterministic but varies based on image content
-            entropy = float(np.std(img_array))
-            grayscale = float(np.mean(img_array))
+            # Analyze image properties (NOT AI prediction)
+            img_mean = np.mean(img_array)
+            img_std = np.std(img_array)
+            img_entropy = float(np.max(img_array) - np.min(img_array))
             
-            # Normalize to generate predictions
-            normal_prob = (grayscale + entropy) / 512.0
-            normal_prob = np.clip(normal_prob, 0.1, 0.9)
-            pneumonia_prob = 1.0 - normal_prob
+            # Create pseudo-random but deterministic predictions
+            # based on image properties (NOT actual model output)
+            np.random.seed(hash(image_path) % (2**32))
             
-            # Determine label based on pneumonia probability
+            # Generate varied predictions (not stuck at 61%)
+            base_value = 0.4 + (img_mean / 512.0)
+            pneumonia_prob = np.clip(base_value + np.random.uniform(-0.15, 0.35), 0.2, 0.95)
+            normal_prob = 1.0 - pneumonia_prob
+            
+            # Determine label
             if pneumonia_prob > 0.5:
                 label = 'PNEUMONIA'
                 confidence = pneumonia_prob
@@ -66,6 +76,8 @@ class DemoModeHelper:
                 confidence_level = 'HIGH'
             elif confidence_pct >= 80:
                 confidence_level = 'MODERATE'
+            elif confidence_pct >= 70:
+                confidence_level = 'MODERATE'
             else:
                 confidence_level = 'LOW'
             
@@ -77,13 +89,14 @@ class DemoModeHelper:
                 'confidence_level': confidence_level,
                 'confidence_normal': float(normal_prob),
                 'confidence_pneumonia': float(pneumonia_prob),
-                'processing_time': 0.05,
+                'processing_time': 0.02,
                 'raw_predictions': {
                     'NORMAL': float(normal_prob),
-                    'PNEUMONIA': float(pneumonia_prob)
+                    'PNEUMONIA': float(pneumonia_prob),
+                    '_demo': True  # Mark as demo mode
                 },
                 'demo_mode': True,
-                'note': "DEMO MODE: Install TensorFlow for actual AI predictions."
+                'warning': "⚠️ DEMO MODE: Not actual AI prediction. Install TensorFlow for real detection."
             }
         except Exception as e:
             logger.error(f"Demo prediction error: {str(e)}")
