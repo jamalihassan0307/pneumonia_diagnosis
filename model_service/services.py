@@ -9,7 +9,12 @@ import time
 import numpy as np
 from pathlib import Path
 from PIL import Image
-import tensorflow as tf
+
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
+
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from io import BytesIO

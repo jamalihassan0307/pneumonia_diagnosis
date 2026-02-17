@@ -108,7 +108,7 @@ class PredictionResult(models.Model):
         verbose_name = 'Prediction Result'
         verbose_name_plural = 'Prediction Results'
         indexes = [
-            models.Index(fields=['image__user', '-created_at']),
+            models.Index(fields=['image', '-created_at']),
             models.Index(fields=['prediction_label']),
         ]
     
