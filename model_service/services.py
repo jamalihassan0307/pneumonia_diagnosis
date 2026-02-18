@@ -114,9 +114,9 @@ class ImagePreprocessor:
     """
     
     DEFAULT_SIZE = (224, 224)
-    # ImageNet normalization values
-    MEAN = np.array([0.485, 0.456, 0.406])
-    STD = np.array([0.229, 0.224, 0.225])
+    # Grayscale normalization (X-rays are grayscale)
+    MEAN = 0.5
+    STD = 0.5
     
     @staticmethod
     def preprocess_image(image_path, target_size=DEFAULT_SIZE):
@@ -138,9 +138,9 @@ class ImagePreprocessor:
             # Load image
             img = Image.open(image_path)
             
-            # Convert to RGB if grayscale
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
+            # Convert to grayscale (X-rays are grayscale)
+            if img.mode != 'L':
+                img = img.convert('L')
             
             # Resize image
             img_resized = img.resize(target_size, Image.Resampling.LANCZOS)
@@ -151,8 +151,11 @@ class ImagePreprocessor:
             # Normalize to [0, 1]
             img_normalized = img_array / 255.0
             
-            # Apply ImageNet normalization
+            # Apply normalization
             img_normalized = (img_normalized - ImagePreprocessor.MEAN) / ImagePreprocessor.STD
+            
+            # Add channel dimension (grayscale has 1 channel)
+            img_normalized = np.expand_dims(img_normalized, axis=-1)
             
             # Add batch dimension
             img_batch = np.expand_dims(img_normalized, axis=0)

@@ -1,7 +1,7 @@
 Django==4.2.7
-tensorflow  # Latest version compatible with your Python installation
+tensorflow==2.13.0
 Pillow==10.0.0
-numpy
+numpy<1.24,>=1.22
 pandas
 gunicorn==21.2.0
 whitenoise==6.5.0
