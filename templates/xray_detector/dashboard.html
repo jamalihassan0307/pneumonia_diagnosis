@@ -1,0 +1,753 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Pneumonia Diagnosis System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+            background: #f5f7fa;
+        }
+
+        /* Navigation */
+        nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0 20px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .nav-title {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 15px;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Main Container */
+        .main-container {
+            margin-top: 70px;
+            padding: 20px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        /* Upload Section */
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            background: #f0f2ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e8ebff;
+            border-color: #764ba2;
+        }
+
+        .upload-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .choose-file-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            margin-top: 15px;
+        }
+
+        .choose-file-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Preview */
+        .preview-area {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .preview-area.active {
+            display: block;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .file-name {
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Buttons */
+        .analyze-btn, .cancel-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            margin-right: 10px;
+            margin-top: 15px;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .cancel-btn {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .cancel-btn:hover {
+            background: #d0d0d0;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results */
+        .result-area {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .result-area.active {
+            display: block;
+        }
+
+        .result-area.normal {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .result-area.pneumonia {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        }
+
+        .result-badge {
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .confidence-label {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .confidence-bar-container {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            height: 30px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .confidence-bar {
+            height: 100%;
+            background: white;
+            border-radius: 25px;
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .another-btn {
+            background: white;
+            color: #667eea;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .another-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Error Message */
+        .error-message {
+            display: none;
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #c62828;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* History */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .history-table th {
+            background: #f5f7fa;
+            color: #333;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .history-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.normal {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .badge.pneumonia {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-title {
+                display: none;
+            }
+
+            .main-container {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .analyze-btn, .cancel-btn {
+                display: block;
+                width: 100%;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-left">
+            <div class="logo">🫁</div>
+            <div class="nav-title">Pneumonia Diagnosis System</div>
+        </div>
+        <div class="nav-right">
+            <div class="user-info">
+                <span id="userName">Medical Professional</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="uploadCount">0</div>
+                <div class="stat-label">Total Uploads</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="analyzeCount">0</div>
+                <div class="stat-label">Total Analyzed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="normalCount">0</div>
+                <div class="stat-label">Normal Results</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pneumoniaCount">0</div>
+                <div class="stat-label">Pneumonia Results</div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="card">
+            <h2>📤 Upload Chest X-Ray</h2>
+            
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📤</div>
+                <h3>Upload X-Ray Image</h3>
+                <p>Drag & drop your X-ray image here or click to browse</p>
+                <button class="choose-file-btn" type="button" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+                <p style="margin-top: 15px; font-size: 12px; color: #999;">
+                    Supported formats: PNG, JPG, JPEG (Max 16MB)
+                </p>
+                <input type="file" id="fileInput" class="file-input" accept=".png,.jpg,.jpeg" onchange="handleFileSelect(event)">
+            </div>
+
+            <!-- Preview -->
+            <div class="preview-area" id="previewArea">
+                <img id="previewImage" class="preview-image" alt="X-ray preview">
+                <p class="file-name" id="fileName"></p>
+                <div>
+                    <button class="analyze-btn" id="analyzeBtn" onclick="analyzeImage()">
+                        🔍 Analyze X-Ray
+                    </button>
+                    <button class="cancel-btn" onclick="resetUpload()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loadingArea">
+                <div class="spinner"></div>
+                <p>Analyzing X-ray image...</p>
+                <p style="font-size: 14px; color: #999; margin-top: 10px;">
+                    This may take a few seconds
+                </p>
+            </div>
+
+            <!-- Result -->
+            <div class="result-area" id="resultArea">
+                <div class="result-badge" id="resultBadge"></div>
+                <div class="confidence-label">Confidence Level</div>
+                <div class="confidence-bar-container">
+                    <div class="confidence-bar" id="confidenceBar"></div>
+                </div>
+                <button class="another-btn" onclick="resetUpload()">
+                    🔄 Analyze Another X-Ray
+                </button>
+            </div>
+
+            <!-- Error -->
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <!-- History Section -->
+        <div class="card">
+            <h2>📋 Recent Analyses</h2>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Result</th>
+                        <th>Confidence</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTable">
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #999;">No analyses yet</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        // Check authentication
+        if (!token) {
+            window.location.href = '/login/';
+        }
+
+        // Set user name
+        document.getElementById('userName').textContent = user.username || 'Medical Professional';
+
+        // Drag and drop handlers
+        const uploadArea = document.getElementById('uploadArea');
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        // File selection
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                showError('Invalid file type. Please upload a PNG, JPG, or JPEG image.');
+                return;
+            }
+
+            if (file.size > 16 * 1024 * 1024) {
+                showError('File too large. Maximum size is 16MB.');
+                return;
+            }
+
+            selectedFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('fileName').textContent = file.name;
+                uploadArea.style.display = 'none';
+                document.getElementById('previewArea').classList.add('active');
+                hideError();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Analyze image
+        async function analyzeImage() {
+            if (!selectedFile) {
+                showError('Please select an image first.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+
+            document.getElementById('previewArea').classList.remove('active');
+            document.getElementById('loadingArea').classList.add('active');
+            hideError();
+
+            try {
+                const response = await fetch('/api/images/upload/', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Token ${token}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                document.getElementById('loadingArea').classList.remove('active');
+
+                if (data.status === 'success') {
+                    showResults(data);
+                    loadHistory();
+                } else {
+                    showError(data.error || 'Analysis failed');
+                    document.getElementById('previewArea').classList.add('active');
+                }
+            } catch (error) {
+                document.getElementById('loadingArea').classList.remove('active');
+                showError('Network error. Please try again.');
+                document.getElementById('previewArea').classList.add('active');
+            }
+        }
+
+        // Show results
+        function showResults(data) {
+            const resultArea = document.getElementById('resultArea');
+            const resultBadge = document.getElementById('resultBadge');
+            
+            resultArea.className = 'result-area active';
+            if (data.prediction === 'NORMAL') {
+                resultArea.classList.add('normal');
+                resultBadge.textContent = '✓ NORMAL';
+            } else {
+                resultArea.classList.add('pneumonia');
+                resultBadge.textContent = '⚠ PNEUMONIA';
+            }
+
+            const confidenceBar = document.getElementById('confidenceBar');
+            setTimeout(() => {
+                confidenceBar.style.width = data.confidence + '%';
+                confidenceBar.textContent = data.confidence.toFixed(1) + '%';
+            }, 100);
+        }
+
+        // Reset upload
+        function resetUpload() {
+            selectedFile = null;
+            document.getElementById('fileInput').value = '';
+            uploadArea.style.display = 'block';
+            document.getElementById('previewArea').classList.remove('active');
+            document.getElementById('loadingArea').classList.remove('active');
+            document.getElementById('resultArea').classList.remove('active');
+            document.getElementById('resultArea').className = 'result-area';
+            document.getElementById('confidenceBar').style.width = '0%';
+            hideError();
+        }
+
+        // Error handling
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.classList.add('active');
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').classList.remove('active');
+        }
+
+        // Load history
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history/', {
+                    headers: {
+                        'Authorization': `Token ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                const historyTable = document.getElementById('historyTable');
+                
+                if (data.results && data.results.length > 0) {
+                    historyTable.innerHTML = data.results.map(item => `
+                        <tr>
+                            <td>${item.image.original_filename}</td>
+                            <td>
+                                <span class="badge ${item.prediction_label.toLowerCase()}">
+                                    ${item.prediction_label}
+                                </span>
+                            </td>
+                            <td>${item.confidence_percentage.toFixed(1)}%</td>
+                            <td>${new Date(item.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+
+                    updateStats(data.results);
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        // Update stats
+        function updateStats(results) {
+            const normalCount = results.filter(r => r.prediction_label === 'NORMAL').length;
+            const pneumoniaCount = results.length - normalCount;
+            
+            document.getElementById('uploadCount').textContent = results.length;
+            document.getElementById('analyzeCount').textContent = results.length;
+            document.getElementById('normalCount').textContent = normalCount;
+            document.getElementById('pneumoniaCount').textContent = pneumoniaCount;
+        }
+
+        // Logout
+        function logout() {
+            fetch('/api/auth/logout/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Token ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }).then(() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login/';
+            });
+        }
+
+        // Load initial data
+        loadHistory();
+    </script>
+</body>
+</html>

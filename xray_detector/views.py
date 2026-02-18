@@ -3,17 +3,50 @@ Views for X-Ray pneumonia detection.
 Handles GET requests for the upload form and POST requests for image processing.
 """
 
-import os
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.http import require_http_methods
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from .services import predict_pneumonia, validate_image_file
+from .models import UserHistory, XRayImage, PredictionResult
 import logging
+import time
+import json
 
 logger = logging.getLogger(__name__)
+
+
+def login_view(request):
+    """Render login page"""
+    if request.user.is_authenticated:
+        return render(request, 'xray_detector/login.html')
+    return render(request, 'xray_detector/login.html')
+
+
+def register_view(request):
+    """Render registration page"""
+    if request.user.is_authenticated:
+        return render(request, 'xray_detector/register.html')
+    return render(request, 'xray_detector/register.html')
+
+
+def dashboard_view(request):
+    """Render dashboard page (requires authentication)"""
+    if not request.user.is_authenticated:
+        return render(request, 'xray_detector/dashboard.html')
+    return render(request, 'xray_detector/dashboard.html')
+
+
+def results_view(request):
+    """View prediction results and history"""
+    if not request.user.is_authenticated:
+        return render(request, 'xray_detector/results.html')
+    return render(request, 'xray_detector/results.html')
 
 
 @ensure_csrf_cookie
@@ -69,7 +102,9 @@ def index(request):
                 uploaded_file.seek(0)
                 
                 # Make prediction
+                start_time = time.time()
                 result = predict_pneumonia(uploaded_file)
+                processing_time = time.time() - start_time
                 
                 # Check if prediction was successful
                 if not result.get('success'):
@@ -83,7 +118,8 @@ def index(request):
                     'success': True,
                     'predicted_class': result['predicted_class'],
                     'confidence': result['confidence'],
-                    'raw_score': result['raw_score']
+                    'raw_score': result['raw_score'],
+                    'processing_time': round(processing_time, 3)
                 }
                 
                 logger.info(f"Prediction successful: {response_data}")
@@ -111,3 +147,4 @@ def index(request):
             'success': False,
             'error': 'Method not allowed'
         }, status=405)
+
