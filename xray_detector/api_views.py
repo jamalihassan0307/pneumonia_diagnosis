@@ -304,13 +304,13 @@ class UserHistoryViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ModelVersionViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    View model information
+    View model information (public access)
     GET /api/model-versions/ - List available models
     GET /api/model-versions/{id}/ - Get specific model
     """
     queryset = ModelVersion.objects.all()
     serializer_class = ModelVersionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
 
 @api_view(['GET', 'PUT'])

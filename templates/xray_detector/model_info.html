@@ -660,30 +660,29 @@
     </div>
 
     <script>
-        const token = localStorage.getItem('token');
-
-        if (!token) {
-            window.location.href = '/login/';
-        }
-
-        // Load model information
+        // Load model information if user is authenticated
         loadModelInfo();
 
         async function loadModelInfo() {
             try {
                 const response = await fetch('/api/model-versions/', {
-                    headers: {
-                        'Authorization': `Token ${token}`
-                    }
+                    credentials: 'include'
                 });
 
+                if (!response.ok) {
+                    // User not authenticated, use default values
+                    console.log('Using default model information');
+                    return;
+                }
+
                 const data = await response.json();
-                if (data.results && data.results.length > 0) {
-                    const activeModel = data.results.find(m => m.is_active) || data.results[0];
+                if (Array.isArray(data) && data.length > 0) {
+                    const activeModel = data.find(m => m.is_active) || data[0];
                     displayModelInfo(activeModel);
                 }
             } catch (error) {
-                console.error('Error loading model info:', error);
+                // Use default values if API call fails
+                console.log('Using default model information');
             }
         }
 
@@ -713,17 +712,7 @@
         }
 
         function logout() {
-            fetch('/api/auth/logout/', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Token ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            }).then(() => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = '/login/';
-            });
+            window.location.href = '{% url "xray_detector:logout" %}';
         }
     </script>
 {% endblock %}
