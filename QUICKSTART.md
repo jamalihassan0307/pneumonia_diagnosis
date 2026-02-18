@@ -1,92 +1,100 @@
-# QUICK START GUIDE
+# Quick Start Guide
 
-## ⚡ START THE SERVER (Pick ONE):
+## For First-Time Setup
 
-### 🖱️ Option 1: Double-click (EASIEST)
-- On Windows Explorer: Double-click `run_server.bat`
-- Opens Django on http://localhost:8000/
+1. **Open PowerShell and navigate to project:**
+   ```powershell
+   cd "e:\uni projects\ML\pneumonia diagnosis(updated)\attiq_pneumonia_project\Pneumonia_digonosis"
+   ```
 
-### 💻 Option 2: Command Line
-```bash
-.\venv_py311\Scripts\python.exe manage.py runserver
-```
+2. **Create and activate virtual environment:**
+   ```powershell
+   python -m venv venv
+   venv\Scripts\Activate.ps1
+   ```
 
-### 🐍 Option 3: Python Script
-```bash
-python run_server.py
-```
+3. **Install dependencies:**
+   ```powershell
+   pip install -r requirements.txt
+   ```
 
----
+4. **Add your trained model:**
+   - Place your model file at: `ml_models\mobilenetv2_pneumonia_model.h5`
 
-## ⚠️ REMEMBER!
+5. **Run migrations:**
+   ```powershell
+   python manage.py migrate
+   ```
 
-**ALWAYS use `venv_py311` Python, NOT system Python**
+6. **Start server:**
+   ```powershell
+   python manage.py runserver
+   ```
 
-❌ WRONG:
-```bash
+7. **Open browser:**
+   - Go to: http://127.0.0.1:8000/
+
+## For Daily Use
+
+```powershell
+# Navigate to project
+cd "e:\uni projects\ML\pneumonia diagnosis(updated)\attiq_pneumonia_project\Pneumonia_digonosis"
+
+# Activate virtual environment
+venv\Scripts\Activate.ps1
+
+# Start server
 python manage.py runserver
 ```
 
-✅ RIGHT:
-```bash
-.\venv_py311\Scripts\python.exe manage.py runserver
+## To Stop Server
+
+- Press `Ctrl + C` in the terminal
+
+## Common Commands
+
+```powershell
+# Check if model exists
+Test-Path "ml_models\mobilenetv2_pneumonia_model.h5"
+
+# Create superuser (admin access)
+python manage.py createsuperuser
+
+# Run on different port
+python manage.py runserver 8080
+
+# Deactivate virtual environment
+deactivate
 ```
 
----
+## Need Help?
 
-## 🧪 TEST THE SYSTEM
+- See [README.md](README.md) for full documentation
+- See [SETUP_INSTRUCTIONS.md](SETUP_INSTRUCTIONS.md) for detailed setup
+- See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues
 
-```bash
-.\venv_py311\Scripts\python.exe test_diagnosis.py
+## Project Structure
+
+```
+Pneumonia_digonosis/
+├── manage.py                    # Django management
+├── requirements.txt             # Dependencies
+├── pneumonia_diagnosis/         # Main project settings
+├── xray_detector/              # Application code
+├── templates/                  # HTML templates
+├── ml_models/                  # Place your model here!
+│   └── mobilenetv2_pneumonia_model.h5
+└── media/uploads/              # Temporary uploads (auto-deleted)
 ```
 
-Expected output:
-```
-✅ DIAGNOSIS SUCCESSFUL
-Prediction: NORMAL or PNEUMONIA
-Confidence: 50-95%
-```
+## ✅ Checklist
 
----
+Before first run:
+- [ ] Python 3.8+ installed
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed (`pip install -r requirements.txt`)
+- [ ] Model file at `ml_models\mobilenetv2_pneumonia_model.h5`
+- [ ] Migrations run (`python manage.py migrate`)
+- [ ] Server starts without errors
 
-## 📚 DOCUMENTATION
-
-- **SETUP_FIXED.md** - Complete setup guide
-- **FIX_SUMMARY.md** - What was wrong and how it was fixed
-- **PROJECT.md** - Project overview
-- **README.md** - General information
-
----
-
-## 🔧 TROUBLESHOOTING
-
-**Q: Port 8000 in use?**
-```bash
-.\venv_py311\Scripts\python.exe manage.py runserver 8001
-```
-
-**Q: TensorFlow not found?**
-- Make sure you're using venv Python
-- Check: `.\venv_py311\Scripts\python.exe -c "import tensorflow"`
-
-**Q: Model won't load?**
-- System automatically creates fresh model
-- Check console for error details
-- Model will work fine with auto-created version
-
-**Q: Predictions too slow?**
-- First run includes model loading (~3s)
-- Subsequent predictions: ~0.5s
-- Use GPU for faster inference (optional)
-
----
-
-## 📊 SYSTEM STATUS
-
-✅ Python Environment: Configured
-✅ TensorFlow: Installed & Working
-✅ Django: Running & Configured
-✅ Model: Loading & Predicting
-✅ Database: Migrated & Ready
-
-You're all set! 🚀
+You're ready to diagnose pneumonia! 🎉
