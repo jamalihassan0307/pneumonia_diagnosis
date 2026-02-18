@@ -3,7 +3,7 @@ Views for X-Ray pneumonia detection.
 Handles GET requests for the upload form and POST requests for image processing.
 """
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.decorators import login_required
@@ -23,149 +23,61 @@ logger = logging.getLogger(__name__)
 
 
 def login_view(request):
-    """Render login page"""
+    """Render login page - redirects to dashboard if already authenticated"""
     if request.user.is_authenticated:
-        return render(request, 'xray_detector/login.html')
+        return redirect('xray_detector:dashboard')
     return render(request, 'xray_detector/login.html')
 
 
 def register_view(request):
-    """Render registration page"""
+    """Render registration page - redirects to dashboard if already authenticated"""
     if request.user.is_authenticated:
-        return render(request, 'xray_detector/register.html')
+        return redirect('xray_detector:dashboard')
     return render(request, 'xray_detector/register.html')
 
 
+@login_required(login_url='xray_detector:login')
 def dashboard_view(request):
     """Render dashboard page (requires authentication)"""
-    if not request.user.is_authenticated:
-        return render(request, 'xray_detector/dashboard.html')
     return render(request, 'xray_detector/dashboard.html')
 
 
+@login_required(login_url='xray_detector:login')
 def results_view(request):
     """View prediction results and history"""
-    if not request.user.is_authenticated:
-        return render(request, 'xray_detector/results.html')
     return render(request, 'xray_detector/results.html')
 
 
+@login_required(login_url='xray_detector:login')
 def profile_view(request):
     """View and edit user profile"""
     return render(request, 'xray_detector/profile.html')
 
 
+@login_required(login_url='xray_detector:login')
 def history_view(request):
     """View activity history"""
     return render(request, 'xray_detector/history.html')
 
 
+@login_required(login_url='xray_detector:login')
 def model_info_view(request):
     """View model information and specifications"""
     return render(request, 'xray_detector/model_info.html')
 
 
+@login_required(login_url='xray_detector:login')
 def result_detail_view(request):
     """View detailed result information"""
     return render(request, 'xray_detector/result_detail.html')
 
 
-@ensure_csrf_cookie
 def index(request):
     """
-    Main view for pneumonia detection.
-    
-    GET: Display the upload form
-    POST: Process uploaded image and return prediction results
-    
-    Returns:
-        GET: Rendered HTML template
-        POST: JSON response with prediction results or error
+    Home page view - redirects to dashboard if authenticated, login otherwise.
     """
-    if request.method == 'GET':
-        # Display upload form
-        return render(request, 'xray_detector/index.html')
-    
-    elif request.method == 'POST':
-        # Process uploaded image
-        try:
-            # Check if file was uploaded
-            if 'xray_image' not in request.FILES:
-                return JsonResponse({
-                    'success': False,
-                    'error': 'No image file provided. Please select an X-ray image.'
-                }, status=400)
-            
-            uploaded_file = request.FILES['xray_image']
-            
-            # Validate file
-            is_valid, error_message = validate_image_file(uploaded_file)
-            if not is_valid:
-                return JsonResponse({
-                    'success': False,
-                    'error': error_message
-                }, status=400)
-            
-            # Create uploads directory if it doesn't exist
-            upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
-            os.makedirs(upload_dir, exist_ok=True)
-            
-            # Save file temporarily
-            file_name = uploaded_file.name
-            file_path = os.path.join(upload_dir, file_name)
-            
-            # Save the uploaded file
-            saved_path = default_storage.save(file_path, ContentFile(uploaded_file.read()))
-            logger.info(f"File saved temporarily at: {saved_path}")
-            
-            try:
-                # Reset file pointer for prediction
-                uploaded_file.seek(0)
-                
-                # Make prediction
-                start_time = time.time()
-                result = predict_pneumonia(uploaded_file)
-                processing_time = time.time() - start_time
-                
-                # Check if prediction was successful
-                if not result.get('success'):
-                    return JsonResponse({
-                        'success': False,
-                        'error': result.get('error', 'Prediction failed')
-                    }, status=500)
-                
-                # Return successful prediction
-                response_data = {
-                    'success': True,
-                    'predicted_class': result['predicted_class'],
-                    'confidence': result['confidence'],
-                    'raw_score': result['raw_score'],
-                    'processing_time': round(processing_time, 3)
-                }
-                
-                logger.info(f"Prediction successful: {response_data}")
-                return JsonResponse(response_data)
-                
-            finally:
-                # Delete temporary file
-                try:
-                    if default_storage.exists(saved_path):
-                        default_storage.delete(saved_path)
-                        logger.info(f"Temporary file deleted: {saved_path}")
-                except Exception as e:
-                    logger.error(f"Error deleting temporary file: {str(e)}")
-        
-        except Exception as e:
-            logger.error(f"Error processing request: {str(e)}")
-            return JsonResponse({
-                'success': False,
-                'error': f'Server error: {str(e)}'
-            }, status=500)
-    
-    else:
-        # Method not allowed
-        return JsonResponse({
-            'success': False,
-            'error': 'Method not allowed'
-        }, status=405)
+    if request.user.is_authenticated:
+        return redirect('xray_detector:dashboard')
+    return redirect('xray_detector:login')
+
 
