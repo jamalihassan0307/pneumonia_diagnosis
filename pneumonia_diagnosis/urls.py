@@ -18,20 +18,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
-    # API Documentation (Swagger - using drf_spectacular)
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     
     # Web Interface
     path('', include('xray_detector.urls')),
     
     # REST API
     path('api/', include('xray_detector.api_urls')),
+    path('api-auth/', include('rest_framework.urls')),
 ]
 
 # Serve media files in development

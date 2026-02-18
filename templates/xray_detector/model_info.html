@@ -660,29 +660,30 @@
     </div>
 
     <script>
-        // Load model information if user is authenticated
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            window.location.href = '/login/';
+        }
+
+        // Load model information
         loadModelInfo();
 
         async function loadModelInfo() {
             try {
                 const response = await fetch('/api/model-versions/', {
-                    credentials: 'include'
+                    headers: {
+                        'Authorization': `Token ${token}`
+                    }
                 });
 
-                if (!response.ok) {
-                    // User not authenticated, use default values
-                    console.log('Using default model information');
-                    return;
-                }
-
                 const data = await response.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    const activeModel = data.find(m => m.is_active) || data[0];
+                if (data.results && data.results.length > 0) {
+                    const activeModel = data.results.find(m => m.is_active) || data.results[0];
                     displayModelInfo(activeModel);
                 }
             } catch (error) {
-                // Use default values if API call fails
-                console.log('Using default model information');
+                console.error('Error loading model info:', error);
             }
         }
 
@@ -712,7 +713,17 @@
         }
 
         function logout() {
-            window.location.href = '{% url "xray_detector:logout" %}';
+            fetch('/api/auth/logout/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Token ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }).then(() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login/';
+            });
         }
     </script>
 {% endblock %}

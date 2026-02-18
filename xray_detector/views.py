@@ -112,8 +112,9 @@ def history_view(request):
     return render(request, 'xray_detector/history.html')
 
 
+@login_required(login_url='xray_detector:login')
 def model_info_view(request):
-    """View model information and specifications (public page)"""
+    """View model information and specifications"""
     return render(request, 'xray_detector/model_info.html')
 
 
