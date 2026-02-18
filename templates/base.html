@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pneumonia Diagnosis System{% endblock %}</title>
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    
+    <!-- Page-specific Styles -->
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        /* Override for responsive design if needed */
+        {% block inline_css %}{% endblock %}
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">🫁</div>
+            <div class="nav-title">Pneumonia Diagnosis System</div>
+        </div>
+        
+        <div class="nav-links">
+            <a href="/dashboard/" class="nav-link {% block nav_dashboard %}{% endblock %}">Dashboard</a>
+            <a href="/results/" class="nav-link {% block nav_results %}{% endblock %}">Results</a>
+            <a href="/history/" class="nav-link {% block nav_history %}{% endblock %}">History</a>
+            <a href="/profile/" class="nav-link {% block nav_profile %}{% endblock %}">Profile</a>
+            <a href="/model-info/" class="nav-link {% block nav_model %}{% endblock %}">Model</a>
+        </div>
+        
+        <div class="nav-right">
+            <div class="user-info">
+                <span id="userName">Medical Professional</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>About</h4>
+                <p>Advanced pneumonia detection system using AI and deep learning technology.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="/dashboard/">Dashboard</a></li>
+                    <li><a href="/results/">Results</a></li>
+                    <li><a href="/model-info/">Model Info</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <p>Contact: support@pneumonia-diagnosis.com<br>
+                Phone: +1-800-PNEUMONIA</p>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Disclaimer</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Pneumonia Diagnosis System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Base Scripts -->
+    <script src="{% static 'js/base.js' %}"></script>
+    
+    <!-- Page-specific Scripts -->
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Global logout function
+        function logout() {
+            const token = localStorage.getItem('token');
+            fetch('/api/auth/logout/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Token ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }).then(() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login/';
+            });
+        }
+
+        // Check authentication
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token && window.location.pathname !== '/login/' && window.location.pathname !== '/register/') {
+            // Don't redirect from login/register
+            if (window.location.pathname !== '/login/' && window.location.pathname !== '/register/') {
+                window.location.href = '/login/';
+            }
+        }
+
+        // Set user name in navbar
+        if (user.username) {
+            document.getElementById('userName').textContent = user.username;
+        }
+    </script>
+</body>
+</html>

@@ -1,10 +1,15 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Model Information - Pneumonia Diagnosis System</title>
+
+{% block title %}Model Information - Pneumonia Diagnosis System{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/model_info.css' %}">
+{% endblock %}
+
+{% block nav_model %}active{% endblock %}
+
+{% block content %}
     <style>
         * {
             margin: 0;
@@ -355,25 +360,6 @@
             }
         }
     </style>
-</head>
-<body>
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-left">
-            <div class="logo">🫁</div>
-            <div class="nav-title">Pneumonia Diagnosis System</div>
-        </div>
-        <div class="nav-links">
-            <a href="/dashboard/" class="nav-link">Dashboard</a>
-            <a href="/results/" class="nav-link">Results</a>
-            <a href="/history/" class="nav-link">History</a>
-            <a href="/profile/" class="nav-link">Profile</a>
-            <a href="/model-info/" class="nav-link active">Model</a>
-        </div>
-        <div class="nav-right">
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
-    </nav>
 
     <!-- Main Content -->
     <div class="main-container">
@@ -740,5 +726,4 @@
             });
         }
     </script>
-</body>
-</html>
+{% endblock %}
