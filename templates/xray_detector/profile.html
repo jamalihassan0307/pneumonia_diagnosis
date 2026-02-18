@@ -1,0 +1,778 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Pneumonia Diagnosis System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+            background: #f5f7fa;
+        }
+
+        /* Navigation */
+        nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0 20px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .nav-title {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Main Container */
+        .main-container {
+            margin-top: 70px;
+            padding: 20px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        /* Profile Header */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            padding-bottom: 40px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 50px;
+            flex-shrink: 0;
+        }
+
+        .profile-info h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .profile-info p {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .profile-status {
+            display: inline-block;
+            background: #c8e6c9;
+            color: #2e7d32;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Form Group */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+
+        .btn-danger:hover {
+            background: #f48482;
+            color: white;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 15px 20px;
+            color: #999;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab-btn:hover {
+            color: #667eea;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Message */
+        .message {
+            display: none;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: #c8e6c9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .message.error {
+            background: #ffcdd2;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+
+        .message.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-title {
+                display: none;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab-btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-left">
+            <div class="logo">🫁</div>
+            <div class="nav-title">Pneumonia Diagnosis System</div>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard/" class="nav-link">Dashboard</a>
+            <a href="/results/" class="nav-link">Results</a>
+            <a href="/history/" class="nav-link">History</a>
+            <a href="/profile/" class="nav-link active">Profile</a>
+        </div>
+        <div class="nav-right">
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="page-header">
+            <h1>👤 My Profile</h1>
+            <p style="color: #999; margin-top: 10px;">Manage your account information and settings</p>
+        </div>
+
+        <!-- Message -->
+        <div class="message" id="message"></div>
+
+        <!-- Profile Card -->
+        <div class="card">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-avatar" id="avatar">👨‍⚕️</div>
+                <div class="profile-info">
+                    <h2 id="fullName">Medical Professional</h2>
+                    <p id="emailDisplay">email@example.com</p>
+                    <p id="usernameDisplay">@username</p>
+                    <div class="profile-status">✓ Active</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('view')">View Profile</button>
+                <button class="tab-btn" onclick="switchTab('edit')">Edit Profile</button>
+                <button class="tab-btn" onclick="switchTab('security')">Security</button>
+            </div>
+
+            <!-- View Profile Tab -->
+            <div class="tab-content active" id="viewTab">
+                <h3 style="color: #333; margin-bottom: 20px;">Account Information</h3>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Username</div>
+                        <div class="info-value" id="viewUsername"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Email Address</div>
+                        <div class="info-value" id="viewEmail"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">First Name</div>
+                        <div class="info-value" id="viewFirstName"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Last Name</div>
+                        <div class="info-value" id="viewLastName"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Account Created</div>
+                        <div class="info-value" id="viewCreated"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Account Status</div>
+                        <div class="info-value">
+                            <span style="background: #c8e6c9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: 12px;">Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="color: #333; margin: 40px 0 20px;">Activity Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="statUploads">0</div>
+                        <div class="stat-label">Total Uploads</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statAnalyses">0</div>
+                        <div class="stat-label">Total Analyses</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statNormal">0</div>
+                        <div class="stat-label">Normal Results</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statPneumonia">0</div>
+                        <div class="stat-label">Pneumonia Results</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Profile Tab -->
+            <div class="tab-content" id="editTab">
+                <h3 style="color: #333; margin-bottom: 20px;">Edit Profile Information</h3>
+                
+                <form id="editProfileForm" onsubmit="saveProfile(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="first_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="last_name" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Username (Cannot be changed)</label>
+                        <input type="text" id="usernameDisplay2" disabled style="background: #f5f5f5; color: #999;">
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                        <button type="button" class="btn btn-secondary" onclick="loadProfileData()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Security Tab -->
+            <div class="tab-content" id="securityTab">
+                <h3 style="color: #333; margin-bottom: 20px;">Change Password</h3>
+                
+                <form id="changePasswordForm" onsubmit="changePassword(event)">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" name="current_password" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" name="new_password" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirm_password" required>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">🔒 Change Password</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetPasswordForm()">Reset</button>
+                    </div>
+                </form>
+
+                <hr style="margin: 40px 0; border: none; border-top: 2px solid #f0f0f0;">
+
+                <h3 style="color: #333; margin-bottom: 20px;">Danger Zone</h3>
+                
+                <div style="background: #ffebee; padding: 20px; border-radius: 8px; border-left: 4px solid #c62828;">
+                    <h4 style="color: #c62828; margin-bottom: 10px;">Delete Account</h4>
+                    <p style="color: #666; margin-bottom: 15px;">This action cannot be undone. All your data will be permanently deleted.</p>
+                    <button class="btn btn-danger" onclick="deleteAccount()">Delete My Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (!token) {
+            window.location.href = '/login/';
+        }
+
+        // Load profile data on page load
+        loadProfileData();
+
+        async function loadProfileData() {
+            try {
+                const response = await fetch(`/api/users/${user.id}/`, {
+                    headers: {
+                        'Authorization': `Token ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                // Update view tab
+                document.getElementById('viewUsername').textContent = data.username;
+                document.getElementById('viewEmail').textContent = data.email;
+                document.getElementById('viewFirstName').textContent = data.first_name || '-';
+                document.getElementById('viewLastName').textContent = data.last_name || '-';
+                document.getElementById('viewCreated').textContent = new Date(data.date_joined).toLocaleDateString();
+                
+                // Update header
+                document.getElementById('fullName').textContent = `${data.first_name} ${data.last_name}` || data.username;
+                document.getElementById('emailDisplay').textContent = data.email;
+                document.getElementById('usernameDisplay').textContent = '@' + data.username;
+
+                // Update edit form
+                document.getElementById('firstName').value = data.first_name || '';
+                document.getElementById('lastName').value = data.last_name || '';
+                document.getElementById('email').value = data.email;
+                document.getElementById('usernameDisplay2').value = data.username;
+
+                // Load stats
+                loadStats();
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/history/', {
+                    headers: {
+                        'Authorization': `Token ${token}`
+                    }
+                });
+
+                const data = response.json();
+                if (data.results) {
+                    const stats = {
+                        uploads: 0,
+                        analyses: 0,
+                        normal: 0,
+                        pneumonia: 0
+                    };
+
+                    data.results.forEach(item => {
+                        if (item.action_type === 'UPLOAD') stats.uploads++;
+                        if (item.action_type === 'ANALYZE') stats.analyses++;
+                    });
+
+                    // Also fetch results for prediction counts
+                    const resultsResponse = await fetch('/api/results/', {
+                        headers: {
+                            'Authorization': `Token ${token}`
+                        }
+                    });
+
+                    const resultsData = await resultsResponse.json();
+                    if (resultsData.results) {
+                        resultsData.results.forEach(item => {
+                            if (item.prediction_label === 'NORMAL') stats.normal++;
+                            else if (item.prediction_label === 'PNEUMONIA') stats.pneumonia++;
+                        });
+                    }
+
+                    document.getElementById('statUploads').textContent = stats.uploads;
+                    document.getElementById('statAnalyses').textContent = stats.analyses;
+                    document.getElementById('statNormal').textContent = stats.normal;
+                    document.getElementById('statPneumonia').textContent = stats.pneumonia;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function saveProfile(event) {
+            event.preventDefault();
+            
+            const formData = {
+                first_name: document.getElementById('firstName').value,
+                last_name: document.getElementById('lastName').value,
+                email: document.getElementById('email').value
+            };
+
+            try {
+                const response = await fetch(`/api/users/${user.id}/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    showMessage('Profile updated successfully!', 'success');
+                    loadProfileData();
+                } else {
+                    showMessage('Error updating profile', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function changePassword(event) {
+            event.preventDefault();
+            
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                showMessage('Passwords do not match', 'error');
+                return;
+            }
+
+            const formData = {
+                current_password: document.getElementById('currentPassword').value,
+                new_password: newPassword
+            };
+
+            try {
+                const response = await fetch('/api/change-password/', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    showMessage('Password changed successfully!', 'success');
+                    resetPasswordForm();
+                } else {
+                    showMessage('Error changing password', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        function resetPasswordForm() {
+            document.getElementById('changePasswordForm').reset();
+        }
+
+        function deleteAccount() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                if (confirm('This will permanently delete all your data. Type "DELETE" to confirm.')) {
+                    // In production, implement proper deletion
+                    alert('Account deletion is not yet implemented. Please contact support.');
+                }
+            }
+        }
+
+        function showMessage(message, type) {
+            const msgElement = document.getElementById('message');
+            msgElement.textContent = message;
+            msgElement.className = 'message ' + type + ' active';
+            setTimeout(() => {
+                msgElement.classList.remove('active');
+            }, 5000);
+        }
+
+        function logout() {
+            fetch('/api/auth/logout/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Token ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }).then(() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login/';
+            });
+        }
+    </script>
+</body>
+</html>

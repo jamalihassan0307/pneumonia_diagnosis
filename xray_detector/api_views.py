@@ -22,7 +22,7 @@ from .serializers import (
     UserSerializer, UserRegistrationSerializer,
     XRayImageSerializer, XRayImageUploadSerializer,
     PredictionResultSerializer, PredictionResultDetailSerializer,
-    UserHistorySerializer
+    UserHistorySerializer, ModelVersionSerializer
 )
 from .services import predict_pneumonia, validate_image_file
 from .permissions import IsAuthenticated
@@ -300,3 +300,79 @@ class UserHistoryViewSet(viewsets.ReadOnlyModelViewSet):
             'last_activity': user_history.first().timestamp if user_history.exists() else None
         }
         return Response(summary)
+
+
+class ModelVersionViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    View model information
+    GET /api/model-versions/ - List available models
+    GET /api/model-versions/{id}/ - Get specific model
+    """
+    queryset = ModelVersion.objects.all()
+    serializer_class = ModelVersionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+@api_view(['GET', 'PUT'])
+@permission_classes([permissions.IsAuthenticated])
+def user_detail(request, user_id):
+    """
+    Get or update user details
+    GET /api/users/{id}/ - Get user details
+    PUT /api/users/{id}/ - Update user details
+    """
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Check if user is updating their own profile
+    if request.user.id != user.id:
+        return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+    
+    if request.method == 'GET':
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+    
+    elif request.method == 'PUT':
+        data = request.data
+        user.first_name = data.get('first_name', user.first_name)
+        user.last_name = data.get('last_name', user.last_name)
+        user.email = data.get('email', user.email)
+        user.save()
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def change_password(request):
+    """
+    Change user password
+    POST /api/change-password/
+    """
+    user = request.user
+    current_password = request.data.get('current_password')
+    new_password = request.data.get('new_password')
+    
+    if not user.check_password(current_password):
+        return Response(
+            {'error': 'Current password is incorrect'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    user.set_password(new_password)
+    user.save()
+    
+    # Invalidate current token and create new one
+    try:
+        user.auth_token.delete()
+    except:
+        pass
+    
+    token, created = Token.objects.get_or_create(user=user)
+    
+    return Response({
+        'message': 'Password changed successfully',
+        'token': token.key
+    })

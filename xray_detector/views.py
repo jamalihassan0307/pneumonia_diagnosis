@@ -13,10 +13,11 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from .services import predict_pneumonia, validate_image_file
-from .models import UserHistory, XRayImage, PredictionResult
+from .models import UserHistory, XRayImage, PredictionResult, ModelVersion
 import logging
 import time
 import json
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,26 @@ def results_view(request):
     if not request.user.is_authenticated:
         return render(request, 'xray_detector/results.html')
     return render(request, 'xray_detector/results.html')
+
+
+def profile_view(request):
+    """View and edit user profile"""
+    return render(request, 'xray_detector/profile.html')
+
+
+def history_view(request):
+    """View activity history"""
+    return render(request, 'xray_detector/history.html')
+
+
+def model_info_view(request):
+    """View model information and specifications"""
+    return render(request, 'xray_detector/model_info.html')
+
+
+def result_detail_view(request):
+    """View detailed result information"""
+    return render(request, 'xray_detector/result_detail.html')
 
 
 @ensure_csrf_cookie

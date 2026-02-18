@@ -797,20 +797,7 @@
 
         // View details
         function viewDetails(resultId) {
-            const result = allResults.find(r => r.id === resultId);
-            if (!result) return;
-
-            currentResult = result;
-            document.getElementById('modalTitle').textContent = result.image.original_filename;
-            document.getElementById('modalImage').src = result.image.file_path;
-            document.getElementById('modalPrediction').textContent = result.prediction_label;
-            document.getElementById('modalConfidence').textContent = result.confidence_percentage.toFixed(1) + '%';
-            document.getElementById('modalLevel').textContent = result.confidence_level;
-            document.getElementById('modalDate').textContent = new Date(result.created_at).toLocaleString();
-            document.getElementById('modalTime').textContent = result.processing_time.toFixed(2) + 's';
-            document.getElementById('modalFormat').textContent = result.image.image_format || 'Unknown';
-
-            document.getElementById('detailModal').classList.add('active');
+            window.location.href = `/result-detail/?id=${resultId}`;
         }
 
         // Close modal

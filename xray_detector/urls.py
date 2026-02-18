@@ -13,5 +13,9 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('results/', views.results_view, name='results'),
+    path('profile/', views.profile_view, name='profile'),
+    path('history/', views.history_view, name='history'),
+    path('model-info/', views.model_info_view, name='model_info'),
+    path('result-detail/', views.result_detail_view, name='result_detail'),
 ]
 
