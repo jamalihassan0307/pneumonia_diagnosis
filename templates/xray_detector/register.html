@@ -161,9 +161,12 @@
             <p>Medical Professional Registration</p>
         </div>
 
-        <div class="error-message" id="errorMessage"></div>
+        <div class="error-message {% if error %}active{% endif %}" id="errorMessage">
+            {% if error %}{{ error }}{% endif %}
+        </div>
 
-        <form id="registerForm" onsubmit="handleRegister(event)">
+        <form method="post" id="registerForm">
+            {% csrf_token %}
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required placeholder="Choose a username">
@@ -172,16 +175,6 @@
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" required placeholder="your.email@hospital.com">
-            </div>
-
-            <div class="form-group">
-                <label for="firstName">First Name</label>
-                <input type="text" id="firstName" name="first_name" placeholder="First name">
-            </div>
-
-            <div class="form-group">
-                <label for="lastName">Last Name</label>
-                <input type="text" id="lastName" name="last_name" placeholder="Last name">
             </div>
 
             <div class="form-group">
@@ -203,62 +196,7 @@
     </div>
 
     <script>
-        async function handleRegister(event) {
-            event.preventDefault();
-            
-            const formData = {
-                username: document.getElementById('username').value,
-                email: document.getElementById('email').value,
-                first_name: document.getElementById('firstName').value,
-                last_name: document.getElementById('lastName').value,
-                password: document.getElementById('password').value,
-                password_confirm: document.getElementById('passwordConfirm').value,
-            };
-
-            const errorMessage = document.getElementById('errorMessage');
-
-            try {
-                const response = await fetch('/api/users/register/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    // Store token and user data
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    // Redirect to dashboard
-                    window.location.href = '/dashboard/';
-                } else {
-                    // Display errors
-                    let errorText = '<ul class="error-list">';
-                    for (const [key, value] of Object.entries(data)) {
-                        if (Array.isArray(value)) {
-                            errorText += `<li>${key}: ${value.join(', ')}</li>`;
-                        } else {
-                            errorText += `<li>${key}: ${value}</li>`;
-                        }
-                    }
-                    errorText += '</ul>';
-                    
-                    errorMessage.innerHTML = errorText;
-                    errorMessage.classList.add('active');
-                }
-            } catch (error) {
-                errorMessage.textContent = 'Network error. Please try again.';
-                errorMessage.classList.add('active');
-            }
-        }
-
-        // Check if already logged in
-        if (localStorage.getItem('token')) {
-            window.location.href = '/dashboard/';
-        }
+        // Django handles form submission and validation server-side
     </script>
 </body>
 </html>

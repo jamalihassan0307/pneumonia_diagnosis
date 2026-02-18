@@ -23,16 +23,68 @@ logger = logging.getLogger(__name__)
 
 
 def login_view(request):
-    """Render login page - redirects to dashboard if already authenticated"""
+    """Handle login page and authentication"""
     if request.user.is_authenticated:
         return redirect('xray_detector:dashboard')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            return redirect('xray_detector:dashboard')
+        else:
+            return render(request, 'xray_detector/login.html', 
+                         {'error': 'Invalid username or password'})
+    
     return render(request, 'xray_detector/login.html')
 
 
 def register_view(request):
-    """Render registration page - redirects to dashboard if already authenticated"""
+    """Handle registration page and new user creation"""
     if request.user.is_authenticated:
         return redirect('xray_detector:dashboard')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+        
+        # Validate form
+        if password != password_confirm:
+            return render(request, 'xray_detector/register.html',
+                         {'error': 'Passwords do not match'})
+        
+        if len(password) < 8:
+            return render(request, 'xray_detector/register.html',
+                         {'error': 'Password must be at least 8 characters'})
+        
+        # Check if username already exists
+        if User.objects.filter(username=username).exists():
+            return render(request, 'xray_detector/register.html',
+                         {'error': 'Username already exists'})
+        
+        if User.objects.filter(email=email).exists():
+            return render(request, 'xray_detector/register.html',
+                         {'error': 'Email already registered'})
+        
+        # Create user
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
+            # Log the user in
+            login(request, user)
+            return redirect('xray_detector:dashboard')
+        except Exception as e:
+            return render(request, 'xray_detector/register.html',
+                         {'error': 'Error creating account'})
+    
     return render(request, 'xray_detector/register.html')
 
 
@@ -78,6 +130,12 @@ def index(request):
     """
     if request.user.is_authenticated:
         return redirect('xray_detector:dashboard')
+    return redirect('xray_detector:login')
+
+
+def logout_view(request):
+    """Logout user and redirect to login page"""
+    logout(request)
     return redirect('xray_detector:login')
 
 

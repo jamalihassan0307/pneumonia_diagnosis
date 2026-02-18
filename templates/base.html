@@ -89,34 +89,12 @@
     <script>
         // Global logout function
         function logout() {
-            const token = localStorage.getItem('token');
-            fetch('/api/auth/logout/', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Token ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            }).then(() => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = '/login/';
-            });
+            window.location.href = '{% url "xray_detector:logout" %}';
         }
 
-        // Check authentication
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        
-        if (!token && window.location.pathname !== '/login/' && window.location.pathname !== '/register/') {
-            // Don't redirect from login/register
-            if (window.location.pathname !== '/login/' && window.location.pathname !== '/register/') {
-                window.location.href = '/login/';
-            }
-        }
-
-        // Set user name in navbar
-        if (user.username) {
-            document.getElementById('userName').textContent = user.username;
+        // Display logged-in user info
+        if (document.getElementById('userName')) {
+            document.getElementById('userName').textContent = '{{ request.user.username }}';
         }
     </script>
 </body>

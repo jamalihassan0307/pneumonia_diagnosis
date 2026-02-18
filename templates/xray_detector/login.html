@@ -171,9 +171,12 @@
             <p>Medical Professional Login</p>
         </div>
 
-        <div class="error-message" id="errorMessage"></div>
+        <div class="error-message {% if error %}active{% endif %}" id="errorMessage">
+            {% if error %}{{ error }}{% endif %}
+        </div>
 
-        <form id="loginForm" onsubmit="handleLogin(event)">
+        <form method="post" id="loginForm">
+            {% csrf_token %}
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required placeholder="Enter your username">
@@ -197,44 +200,8 @@
     </div>
 
     <script>
-        async function handleLogin(event) {
-            event.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('errorMessage');
-
-            try {
-                const response = await fetch('/api/auth/login/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, password })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    // Store token
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    // Redirect to dashboard
-                    window.location.href = '/dashboard/';
-                } else {
-                    errorMessage.textContent = data.non_field_errors?.[0] || 'Invalid username or password';
-                    errorMessage.classList.add('active');
-                }
-            } catch (error) {
-                errorMessage.textContent = 'Network error. Please try again.';
-                errorMessage.classList.add('active');
-            }
-        }
-
-        // Check if already logged in
-        if (localStorage.getItem('token')) {
-            window.location.href = '/dashboard/';
-        }
+        // Redirect if already logged in (check via page load)
+        // Django handles session verification server-side
     </script>
 </body>
 </html>
