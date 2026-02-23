@@ -2,9 +2,26 @@
    PNEUMONIA DIAGNOSIS - RESULTS STYLES  
    ======================================== */
 
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
 /* Page Header */
 .page-header {
     margin-bottom: 30px;
+    animation: fadeInUp 0.6s ease-out;
 }
 
 .page-header h1 {
@@ -25,12 +42,19 @@
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
     margin-bottom: 20px;
+    animation: fadeInUp 0.6s ease-out;
 }
 
 .filter-group {
     display: flex;
     flex-direction: column;
+    animation: fadeInUp 0.5s ease-out;
+    animation-fill-mode: both;
 }
+
+.filter-group:nth-child(1) { animation-delay: 0.1s; }
+.filter-group:nth-child(2) { animation-delay: 0.15s; }
+.filter-group:nth-child(3) { animation-delay: 0.2s; }
 
 .filter-group label {
     font-weight: 600;
@@ -45,6 +69,7 @@
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
+    transition: all 0.3s ease;
 }
 
 .filter-group select:focus, 
@@ -52,6 +77,7 @@
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
 }
 
 .filter-btn {
@@ -63,6 +89,8 @@
     cursor: pointer;
     align-self: flex-end;
     font-weight: 600;
+    animation: fadeInUp 0.5s ease-out 0.3s both;
+    transition: all 0.3s ease;
 }
 
 .filter-btn:hover {
@@ -79,6 +107,25 @@
 
 .result-card {
     background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.6s ease-out;
+    animation-fill-mode: both;
+}
+
+.result-card:nth-child(1) { animation-delay: 0.1s; }
+.result-card:nth-child(2) { animation-delay: 0.2s; }
+.result-card:nth-child(3) { animation-delay: 0.3s; }
+.result-card:nth-child(4) { animation-delay: 0.4s; }
+.result-card:nth-child(5) { animation-delay: 0.5s; }
+.result-card:nth-child(6) { animation-delay: 0.6s; }
+
+.result-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);

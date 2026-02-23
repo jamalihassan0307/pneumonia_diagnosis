@@ -2,9 +2,26 @@
    PNEUMONIA DIAGNOSIS - PROFILE STYLES
    ======================================== */
 
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
 /* Page Header */
 .page-header {
     margin-bottom: 30px;
+    animation: fadeInUp 0.6s ease-out;
 }
 
 .page-header h1 {
@@ -27,6 +44,7 @@
     margin-bottom: 40px;
     padding-bottom: 40px;
     border-bottom: 2px solid #f0f0f0;
+    animation: fadeInUp 0.6s ease-out 0.1s both;
 }
 
 .profile-avatar {
@@ -41,6 +59,7 @@
     font-size: 50px;
     flex-shrink: 0;
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    animation: pulse 2s ease-in-out infinite;
 }
 
 .profile-info h2 {
@@ -78,7 +97,14 @@
 .info-item {
     display: flex;
     flex-direction: column;
+    animation: fadeInUp 0.6s ease-out;
+    animation-fill-mode: both;
 }
+
+.info-item:nth-child(1) { animation-delay: 0.1s; }
+.info-item:nth-child(2) { animation-delay: 0.2s; }
+.info-item:nth-child(3) { animation-delay: 0.3s; }
+.info-item:nth-child(4) { animation-delay: 0.4s; }
 
 .info-label {
     font-size: 12px;
@@ -97,7 +123,14 @@
 /* Form Group */
 .form-group {
     margin-bottom: 20px;
+    animation: fadeInUp 0.6s ease-out;
+    animation-fill-mode: both;
 }
+
+.form-group:nth-child(1) { animation-delay: 0.15s; }
+.form-group:nth-child(2) { animation-delay: 0.25s; }
+.form-group:nth-child(3) { animation-delay: 0.35s; }
+.form-group:nth-child(4) { animation-delay: 0.45s; }
 
 .form-group label {
     display: block;
@@ -192,7 +225,13 @@
     padding: 20px;
     border-radius: 12px;
     text-align: center;
+    animation: fadeInUp 0.6s ease-out;
+    animation-fill-mode: both;
 }
+
+.stat-card:nth-child(1) { animation-delay: 0.2s; }
+.stat-card:nth-child(2) { animation-delay: 0.3s; }
+.stat-card:nth-child(3) { animation-delay: 0.4s; }
 
 .stat-number {
     font-size: 32px;
@@ -210,6 +249,7 @@
     display: flex;
     border-bottom: 2px solid #f0f0f0;
     margin-bottom: 30px;
+    animation: fadeInUp 0.6s ease-out;
 }
 
 .tab-btn {
@@ -222,7 +262,13 @@
     transition: all 0.3s ease;
     border-bottom: 3px solid transparent;
     margin-bottom: -2px;
+    animation: fadeInUp 0.5s ease-out;
+    animation-fill-mode: both;
 }
+
+.tab-btn:nth-child(1) { animation-delay: 0.1s; }
+.tab-btn:nth-child(2) { animation-delay: 0.15s; }
+.tab-btn:nth-child(3) { animation-delay: 0.2s; }
 
 .tab-btn:hover {
     color: #667eea;
@@ -235,6 +281,7 @@
 
 .tab-content {
     display: none;
+    animation: fadeInUp 0.5s ease-out;
 }
 
 .tab-content.active {

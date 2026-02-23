@@ -221,6 +221,12 @@ def result_detail_view(request):
     return render(request, 'xray_detector/result_detail.html')
 
 
+@login_required(login_url='xray_detector:login')
+def upload_view(request):
+    """Display the upload page for X-ray image analysis"""
+    return render(request, 'xray_detector/upload.html')
+
+
 def index(request):
     """
     Home page view - redirects to dashboard if authenticated, login otherwise.
