@@ -11,6 +11,7 @@
     color: #667eea;
     text-decoration: none;
     margin-right: 10px;
+    font-weight: 500;
 }
 
 .breadcrumb a:hover {
@@ -23,11 +24,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .page-header h1 {
     color: #333;
     font-size: 28px;
+    font-weight: 700;
+}
+
+.page-header p {
+    color: #666;
+    font-size: 14px;
 }
 
 /* Result Summary */

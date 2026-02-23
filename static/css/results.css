@@ -1,5 +1,5 @@
 /* ========================================
-   PNEUMONIA DIAGNOSIS - RESULTS STYLES
+   PNEUMONIA DIAGNOSIS - RESULTS STYLES  
    ======================================== */
 
 /* Page Header */
@@ -11,6 +11,12 @@
     color: #333;
     font-size: 32px;
     margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.page-header p {
+    color: #666;
+    font-size: 16px;
 }
 
 /* Filters */
