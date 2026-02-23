@@ -284,36 +284,36 @@
     </div>
 
     <script>
-        const resultId = new URLSearchParams(window.location.search).get('id');
         let currentResult = null;
 
-        if (!resultId) {
-            alert('Result ID not found');
-            window.location.href = '/results/';
-        }
-
-        loadResult();
-
-        async function loadResult() {
-            try {
-                const response = await fetch(`/api/results/${resultId}/`, {
-                    credentials: 'same-origin'
-                });
-
-                if (!response.ok) {
-                    alert('Result not found');
-                    window.location.href = '/results/';
-                    return;
-                }
-
-                currentResult = await response.json();
-                displayResult(currentResult);
-            } catch (error) {
-                console.error('Error loading result:', error);
-                alert('Error loading result');
-                window.location.href = '/results/';
-            }
-        }
+        // Initialize page with template data
+        document.addEventListener('DOMContentLoaded', function() {
+            const result = {
+                id: {{ result.id }},
+                prediction_label: '{{ result.prediction_label }}',
+                confidence_percentage: {{ result.confidence_percentage }},
+                confidence_level: '{{ result.confidence_level }}',
+                confidence_score: {{ result.confidence_score }},
+                processing_time: {{ result.processing_time }},
+                created_at: '{{ result.created_at.isoformat }}',
+                model_version: '{{ result.model_version }}',
+                image: {
+                    id: {{ image.id }},
+                    original_filename: '{{ image.original_filename }}',
+                    file_path: '{{ image.file_path }}',
+                    file_size_mb: {{ image.file_size_mb }},
+                    image_format: '{{ image.image_format }}',
+                    width: {{ image.width }},
+                    height: {{ image.height }},
+                    upload_time: '{{ image.upload_time.isoformat }}',
+                    is_preprocessed: {{ image.is_preprocessed|lower }}
+                },
+                raw_predictions: {{ raw_predictions|safe }}
+            };
+            
+            currentResult = result;
+            displayResult(result);
+        });
 
         function displayResult(result) {
             const isPneumonia = result.prediction_label === 'PNEUMONIA';
@@ -383,7 +383,7 @@
             document.getElementById('metaAnalysisDate').textContent = new Date(result.created_at).toLocaleString();
             document.getElementById('metaProcTime').textContent = result.processing_time.toFixed(2) + ' seconds';
             document.getElementById('metaPrepStatus').textContent = result.image.is_preprocessed ? 'Completed' : 'Pending';
-            document.getElementById('metaModelVersion').textContent = result.model_version ? result.model_version.version : 'Default (MobileNetV2)';
+            document.getElementById('metaModelVersion').textContent = result.model_version || 'Default (MobileNetV2)';
 
             // Predictions Tab
             if (result.raw_predictions) {

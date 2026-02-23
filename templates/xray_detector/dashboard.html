@@ -21,7 +21,7 @@
             <div class="stat-card success">
                 <div class="stat-icon">📤</div>
                 <div class="stat-number" data-counter="{{ total_uploads }}" data-duration="2000">0</div>
-                <div class="stat-label">Total Uploads</div>
+                <div class="stat-label1">Total Uploads</div>
             </div>
             <div class="stat-card info">
                 <div class="stat-icon">🔍</div>
@@ -31,36 +31,16 @@
             <div class="stat-card success">
                 <div class="stat-icon">✓</div>
                 <div class="stat-number" data-counter="{{ normal_count }}" data-duration="2000">0</div>
-                <div class="stat-label">Normal Results</div>
+                <div class="stat-label1">Normal Results</div>
             </div>
             <div class="stat-card danger">
                 <div class="stat-icon">⚠</div>
                 <div class="stat-number" data-counter="{{ pneumonia_count }}" data-duration="2000">0</div>
-                <div class="stat-label">Pneumonia Results</div>
+                <div class="stat-label1">Pneumonia Results</div>
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="card" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid #667eea;">
-            <h2 style="color: #333; margin-bottom: 20px;">🚀 Quick Actions</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                <a href="/upload/" class="btn btn-primary" style="text-decoration: none; text-align: center; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                    <span style="font-size: 32px;">🩻</span>
-                    <span style="font-weight: 600;">New Prediction</span>
-                    <span style="font-size: 13px; opacity: 0.9;">Upload X-ray for analysis</span>
-                </a>
-                <a href="/results/" class="btn btn-secondary" style="text-decoration: none; text-align: center; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; background: white; border: 2px solid #667eea; color: #667eea;">
-                    <span style="font-size: 32px;">📋</span>
-                    <span style="font-weight: 600;">View History</span>
-                    <span style="font-size: 13px; opacity: 0.9;">See all your analyses</span>
-                </a>
-                <a href="/model-info/" class="btn btn-secondary" style="text-decoration: none; text-align: center; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; background: white; border: 2px solid #667eea; color: #667eea;">
-                    <span style="font-size: 32px;">🧠</span>
-                    <span style="font-weight: 600;">Model Info</span>
-                    <span style="font-size: 13px; opacity: 0.9;">Learn about our AI</span>
-                </a>
-            </div>
-        </div>
+       
 
         <!-- Recent Analyses -->
         <div class="card">

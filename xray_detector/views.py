@@ -218,7 +218,62 @@ def model_info_view(request):
 @login_required(login_url='xray_detector:login')
 def result_detail_view(request):
     """View detailed result information"""
-    return render(request, 'xray_detector/result_detail.html')
+    from django.shortcuts import get_object_or_404
+    
+    # Get result ID from query parameter
+    result_id = request.GET.get('id')
+    if not result_id:
+        return redirect('xray_detector:results')
+    
+    # Fetch the result for the current user only
+    result = get_object_or_404(
+        PredictionResult,
+        id=result_id,
+        image__user=request.user
+    )
+    
+    # Parse raw predictions if it's a string
+    raw_predictions = result.raw_predictions
+    if isinstance(raw_predictions, str):
+        try:
+            raw_predictions = json.loads(raw_predictions)
+        except:
+            raw_predictions = {}
+    
+    # Prepare image data with correct field names from model
+    image_data = {
+        'id': result.image.id,
+        'original_filename': result.image.original_filename,
+        'file_path': result.image.file_path.url if result.image.file_path else '',
+        'file_size_mb': result.image.get_file_size_mb(),
+        'image_format': result.image.format,
+        'width': result.image.image_width or 0,
+        'height': result.image.image_height or 0,
+        'upload_time': result.image.upload_time,
+        'is_preprocessed': result.image.is_preprocessed,
+    }
+    
+    # Prepare result data with correct field names
+    result_data = {
+        'id': result.id,
+        'prediction_label': result.prediction_label,
+        'confidence_percentage': result.get_confidence_percentage(),
+        'confidence_level': result.confidence_level,
+        'confidence_score': float(result.confidence_score),
+        'processing_time': float(result.processing_time),
+        'created_at': result.created_at,
+        'model_version': result.model_version.version if result.model_version else 'Default (MobileNetV2)',
+    }
+    
+    # Prepare context
+    context = {
+        'result': result_data,
+        'image': image_data,
+        'raw_predictions': raw_predictions,
+        'is_pneumonia': result.prediction_label == 'PNEUMONIA'
+    }
+    
+    return render(request, 'xray_detector/result_detail.html', context)
 
 
 @login_required(login_url='xray_detector:login')
