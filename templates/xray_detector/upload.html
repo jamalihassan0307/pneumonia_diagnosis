@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}New Prediction - Pneumonia Diagnosis System{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block nav_upload %}active{% endblock %}
+
+{% block content %}
+    <div class="main-container">
+        <div class="page-header">
+            <h1>🩻 New X-Ray Analysis</h1>
+            <p style="color: #666; margin-top: 10px;">Upload a chest X-ray image for pneumonia detection</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="card">
+            <h2>📤 Upload Chest X-Ray</h2>
+            
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">🩻</div>
+                <h3 class="upload-title">Upload X-Ray Image</h3>
+                <p class="upload-subtitle">Drag & drop your X-ray image here or click to browse</p>
+                <button class="choose-file-btn" type="button" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+                <p class="upload-formats">
+                    Supported formats: PNG, JPG, JPEG (Max 16MB)
+                </p>
+                <input type="file" id="fileInput" class="file-input" accept=".png,.jpg,.jpeg" onchange="handleFileSelect(event)">
+            </div>
+
+            <!-- Preview -->
+            <div class="preview-area" id="previewArea">
+                <h3 style="margin-bottom: 20px; color: #333;">Preview</h3>
+                <div class="preview-container">
+                    <div class="preview-image-wrapper">
+                        <img id="previewImage" class="preview-image" alt="X-ray preview">
+                    </div>
+                    <div class="file-info">
+                        <p class="file-name" id="fileName"></p>
+                        <div class="file-info-item">
+                            <strong>File Size:</strong> <span id="fileSize"></span>
+                        </div>
+                        <div class="file-info-item">
+                            <strong>File Type:</strong> <span id="fileType"></span>
+                        </div>
+                        <div class="file-info-item">
+                            <strong>Dimensions:</strong> <span id="fileDimensions"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="analyze-btn btn-primary" id="analyzeBtn" onclick="analyzeImage()">
+                        🔍 Analyze X-Ray
+                    </button>
+                    <button class="cancel-btn btn-secondary" onclick="resetUpload()">
+                        ✖ Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loadingArea">
+                <div class="loading-content">
+                    <div class="spinner"></div>
+                    <p class="loading-text">Analyzing X-ray image...</p>
+                    <p class="loading-subtext">Our AI is processing your image. This may take a few seconds.</p>
+                    <div class="ekg-line">
+                        <svg width="200" height="60" viewBox="0 0 200 60">
+                            <path class="ekg-path" d="M0,30 L40,30 L45,10 L50,50 L55,30 L200,30" fill="none" stroke="#667eea" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error -->
+            <div class="error-message" id="errorMessage" style="display: none; background: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #c62828;"></div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid #667eea;">
+            <h3 style="color: #333; margin-bottom: 15px;">📋 Important Information</h3>
+            <ul style="list-style: none; padding-left: 0;">
+                <li style="padding: 10px 0; color: #666; display: flex; align-items: start;">
+                    <span style="color: #667eea; margin-right: 10px;">✓</span>
+                    <span>Upload clear, high-quality chest X-ray images for best results</span>
+                </li>
+                <li style="padding: 10px 0; color: #666; display: flex; align-items: start;">
+                    <span style="color: #667eea; margin-right: 10px;">✓</span>
+                    <span>Supported formats: PNG, JPG, JPEG (Maximum size: 16MB)</span>
+                </li>
+                <li style="padding: 10px 0; color: #666; display: flex; align-items: start;">
+                    <span style="color: #667eea; margin-right: 10px;">✓</span>
+                    <span>Analysis typically takes 2-5 seconds</span>
+                </li>
+                <li style="padding: 10px 0; color: #666; display: flex; align-items: start;">
+                    <span style="color: #667eea; margin-right: 10px;">⚠</span>
+                    <span>Results should be reviewed by a qualified medical professional</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Recent Analyses Card -->
+        <div class="card">
+            <h2>📊 Recent Analyses</h2>
+            <p style="color: #666; margin-bottom: 20px;">Your most recent predictions</p>
+            <div class="history-table-container" style="overflow-x: auto;">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Result</th>
+                            <th>Confidence</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentHistory">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #999; padding: 30px;">No recent analyses</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        
+        // Get CSRF token from cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // Drag and drop handlers
+        const uploadArea = document.getElementById('uploadArea');
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        // File selection
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                showError('Invalid file type. Please upload a PNG, JPG, or JPEG image.');
+                return;
+            }
+
+            if (file.size > 16 * 1024 * 1024) {
+                showError('File too large. Maximum size is 16MB.');
+                return;
+            }
+
+            selectedFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = function() {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('fileName').textContent = file.name;
+                    document.getElementById('fileSize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                    document.getElementById('fileType').textContent = file.type;
+                    document.getElementById('fileDimensions').textContent = this.width + ' × ' + this.height + ' px';
+                    
+                    uploadArea.style.display = 'none';
+                    document.getElementById('previewArea').classList.add('active');
+                    hideError();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Analyze image
+        async function analyzeImage() {
+            if (!selectedFile) {
+                showError('Please select an image first.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+
+            document.getElementById('previewArea').classList.remove('active');
+            document.getElementById('loadingArea').classList.add('active');
+            hideError();
+
+            try {
+                const response = await fetch('/api/images/upload/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: formData,
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+                document.getElementById('loadingArea').classList.remove('active');
+
+                if (data.status === 'success') {
+                    // Redirect to result detail page
+                    if (data.result_id) {
+                        window.location.href = `/result-detail/?id=${data.result_id}`;
+                    } else {
+                        showError('Analysis completed but result ID not found.');
+                    }
+                } else {
+                    showError(data.error || 'Analysis failed. Please try again.');
+                    document.getElementById('previewArea').classList.add('active');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loadingArea').classList.remove('active');
+                showError('Network error. Please check your connection and try again.');
+                document.getElementById('previewArea').classList.add('active');
+            }
+        }
+
+        // Reset upload
+        function resetUpload() {
+            selectedFile = null;
+            document.getElementById('fileInput').value = '';
+            uploadArea.style.display = 'block';
+            document.getElementById('previewArea').classList.remove('active');
+            document.getElementById('loadingArea').classList.remove('active');
+            document.getElementById('previewImage').src = '';
+            hideError();
+        }
+
+        // Error handling
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = '⚠ ' + message;
+            errorMessage.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // Load recent analyses on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const response = await fetch('/api/results/?limit=5', {
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    const tbody = document.getElementById('recentHistory');
+                    tbody.innerHTML = data.results.map(result => `
+                        <tr>
+                            <td>${result.image.original_filename}</td>
+                            <td>
+                                <span class="badge badge-${result.prediction_label.toLowerCase()}" style="padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                    ${result.prediction_label}
+                                </span>
+                            </td>
+                            <td>${result.confidence_percentage.toFixed(1)}%</td>
+                            <td>${new Date(result.created_at).toLocaleString()}</td>
+                            <td>
+                                <a href="/result-detail/?id=${result.id}" class="btn btn-sm" style="padding: 6px 12px; font-size: 12px; text-decoration: none;">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading recent analyses:', error);
+            }
+        });
+    </script>
+{% endblock %}

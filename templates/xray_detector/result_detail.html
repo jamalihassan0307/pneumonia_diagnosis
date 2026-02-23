@@ -5,558 +5,146 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/result_detail.css' %}">
+    <style>
+        /* Enhanced Color-Coded Styling */
+        .result-normal {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+            border-left: 5px solid #10b981;
+        }
+        
+        .result-pneumonia {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+            border-left: 5px solid #ef4444;
+        }
+        
+        .badge-normal {
+            background: #10b981 !important;
+            color: white !important;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 18px;
+            display: inline-flex;align-items: center;
+            gap: 8px;
+        }
+        
+        .badge-pneumonia {
+            background: #ef4444 !important;
+            color: white !important;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .confidence-bar-normal {
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%) !important;
+        }
+        
+        .confidence-bar-pneumonia {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%) !important;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .breadcrumb {
+            margin-bottom: 20px;
+        }
+        
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
 {% endblock %}
 
 {% block nav_results %}active{% endblock %}
 
 {% block content %}
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
-            background: #f5f7fa;
-        }
-
-        /* Navigation */
-        nav {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 0 20px;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .nav-title {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 20px;
-        }
-
-        .nav-link {
-            color: white;
-            text-decoration: none;
-            padding: 8px 15px;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Main Container */
-        .main-container {
-            margin-top: 70px;
-            padding: 20px;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .breadcrumb {
-            margin-bottom: 20px;
-        }
-
-        .breadcrumb a {
-            color: #667eea;
-            text-decoration: none;
-            margin-right: 10px;
-        }
-
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        .page-header {
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .page-header h1 {
-            color: #333;
-            font-size: 28px;
-        }
-
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        /* Result Summary */
-        .result-summary {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-            padding-bottom: 30px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-
-        .image-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f9f9f9;
-            border-radius: 12px;
-            padding: 20px;
-            min-height: 400px;
-        }
-
-        .image-container img {
-            max-width: 100%;
-            max-height: 400px;
-            object-fit: contain;
-            border-radius: 8px;
-        }
-
-        .image-no-display {
-            text-align: center;
-            color: #999;
-            font-size: 14px;
-        }
-
-        .result-box {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .result-badge-large {
-            font-size: 48px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-
-        .result-badge-large.normal {
-            color: #2e7d32;
-        }
-
-        .result-badge-large.pneumonia {
-            color: #c62828;
-        }
-
-        .confidence-section {
-            margin-bottom: 30px;
-        }
-
-        .confidence-section h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        .confidence-bar-large {
-            background: #f0f0f0;
-            border-radius: 10px;
-            height: 40px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-
-        .confidence-progress-large {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            transition: width 1s ease;
-        }
-
-        .confidence-text {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .level-badge {
-            display: inline-block;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .level-high {
-            background: #c8e6c9;
-            color: #2e7d32;
-        }
-
-        .level-moderate {
-            background: #fff9c4;
-            color: #f57f17;
-        }
-
-        .level-low {
-            background: #ffccbc;
-            color: #d84315;
-        }
-
-        /* Details Grid */
-        .details-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            background: #f9f9f9;
-            border-radius: 8px;
-        }
-
-        .detail-label {
-            font-size: 12px;
-            color: #999;
-            margin-bottom: 8px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .detail-value {
-            font-size: 18px;
-            color: #333;
-            font-weight: 600;
-        }
-
-        /* Buttons */
-        .button-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-danger {
-            background: #ffcdd2;
-            color: #c62828;
-        }
-
-        .btn-danger:hover {
-            background: #f48482;
-            color: white;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            border-bottom: 2px solid #f0f0f0;
-            margin-bottom: 30px;
-        }
-
-        .tab-btn {
-            background: none;
-            border: none;
-            padding: 15px 20px;
-            color: #999;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-        }
-
-        .tab-btn:hover {
-            color: #667eea;
-        }
-
-        .tab-btn.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Analysis Details */
-        .analysis-details {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .analysis-details h4 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .detail-list {
-            list-style: none;
-        }
-
-        .detail-list li {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .detail-list li:last-child {
-            border-bottom: none;
-        }
-
-        .detail-list strong {
-            color: #333;
-        }
-
-        .detail-list span {
-            color: #999;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-header {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .modal-body {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .result-summary {
-                grid-template-columns: 1fr;
-            }
-
-            .details-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .button-group {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
-
-            .tabs {
-                flex-wrap: wrap;
-            }
-
-            .tab-btn {
-                flex: 1;
-            }
-
-            .image-container {
-                min-height: 300px;
-            }
-
-            .image-container img {
-                max-height: 300px;
-            }
-        }
-    </style>
-
-    <!-- Main Content -->
     <div class="main-container">
         <!-- Breadcrumb -->
         <div class="breadcrumb">
-            <a href="/results/">← Back to Results</a>
+            <a href="/results/">← Back to History</a>
         </div>
 
         <!-- Page Header -->
         <div class="page-header">
             <div>
-                <h1 id="pageTitle">Result Details</h1>
-                <p style="color: #999; margin-top: 5px;" id="filename"></p>
+                <h1 id="pageTitle" style="color: #333;">Result Details</h1>
+                <p style="color: #666; margin-top: 5px;" id="filename"></p>
             </div>
             <div class="button-group">
-                <button class="btn btn-success" onclick="exportPDF()">📄 Export PDF</button>
-                <button class="btn btn-danger" onclick="deleteResult()">🗑️ Delete</button>
+                <button class="btn btn-success" onclick="exportPDF()" style="background: #10b981; color: white;">📄 Export PDF</button>
+                <button class="btn btn-danger" onclick="deleteResult()" style="background: #ef4444; color: white;">🗑️ Delete</button>
             </div>
         </div>
 
         <!-- Result Summary Card -->
-        <div class="card">
+        <div class="card" id="resultCard">
             <div class="result-summary">
                 <!-- Image -->
                 <div class="image-container">
-                    <img id="resultImage" alt="X-ray image">
+                    <img id="resultImage" alt="X-ray image" style="max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; cursor: pointer;" onclick="openImageViewer()">
                 </div>
 
                 <!-- Result Box -->
                 <div class="result-box">
-                    <div class="result-badge-large" id="resultBadge"></div>
+                    <div id="resultBadge" style="font-size: 32px; font-weight: 700; margin-bottom: 20px;"></div>
 
                     <div class="confidence-section">
-                        <h3>Confidence Score</h3>
+                        <h3 style="color: #333; margin-bottom: 15px; font-size: 18px;">Confidence Score</h3>
                         <div class="confidence-bar-large">
-                            <div class="confidence-progress-large" id="confBar"></div>
+                            <div class="confidence-progress-large" id="confBar" style="display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; transition: width 1s ease;"></div>
                         </div>
-                        <div class="confidence-text" id="confText"></div>
+                        <div class="confidence-text" id="confText" style="font-size: 24px; font-weight: bold; color: #333; margin: 15px 0;"></div>
                         <div>
                             <span class="level-badge" id="levelBadge"></span>
                         </div>
+                    </div>
+
+                    <div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #f0f0f0;">
+                        <h4 style="color: #333; margin-bottom: 15px;">Recommendation</h4>
+                        <p id="recommendation" style="color: #666; line-height: 1.8;"></p>
                     </div>
                 </div>
             </div>
 
             <!-- Details Grid -->
-            <h3 style="color: #333; margin-bottom: 20px;">Analysis Details</h3>
+            <h3 style="color: #333; margin: 40px 0 20px;">📊 Analysis Details</h3>
             <div class="details-grid">
                 <div class="detail-item">
                     <div class="detail-label">Analysis Result</div>
-                    <div class="detail-value" id="detailResult"></div>
+                    <div class="detail-value" id="detailResult" style="color: #333;"></div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Confidence Level</div>
-                    <div class="detail-value" id="detailLevel"></div>
+                    <div class="detail-value" id="detailLevel" style="color: #333;"></div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Processing Time</div>
-                    <div class="detail-value" id="detailTime"></div>
+                    <div class="detail-value" id="detailTime" style="color: #333;"></div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Analysis Date</div>
-                    <div class="detail-value" id="detailDate"></div>
+                    <div class="detail-value" id="detailDate" style="color: #333;"></div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Image Format</div>
-                    <div class="detail-value" id="detailFormat"></div>
+                    <div class="detail-value" id="detailFormat" style="color: #333;"></div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Image Dimensions</div>
-                    <div class="detail-value" id="detailDimensions"></div>
+                    <div class="detail-value" id="detailDimensions" style="color: #333;"></div>
                 </div>
             </div>
         </div>
@@ -572,47 +160,47 @@
             <!-- Metadata Tab -->
             <div class="tab-content active" id="metadataTab">
                 <div class="analysis-details">
-                    <h4>File Information</h4>
+                    <h4 style="color: #333; margin-bottom: 15px;">File Information</h4>
                     <ul class="detail-list">
                         <li>
-                            <strong>Filename:</strong>
-                            <span id="metaFilename"></span>
+                            <strong style="color: #333;">Filename:</strong>
+                            <span id="metaFilename" style="color: #666;"></span>
                         </li>
                         <li>
-                            <strong>File Size:</strong>
-                            <span id="metaFileSize"></span>
+                            <strong style="color: #333;">File Size:</strong>
+                            <span id="metaFileSize" style="color: #666;"></span>
                         </li>
                         <li>
-                            <strong>Format:</strong>
-                            <span id="metaFormat"></span>
+                            <strong style="color: #333;">Format:</strong>
+                            <span id="metaFormat" style="color: #666;"></span>
                         </li>
                         <li>
-                            <strong>Dimensions:</strong>
-                            <span id="metaDimensions"></span>
+                            <strong style="color: #333;">Dimensions:</strong>
+                            <span id="metaDimensions" style="color: #666;"></span>
                         </li>
                         <li>
-                            <strong>Upload Date:</strong>
-                            <span id="metaUploadDate"></span>
+                            <strong style="color: #333;">Upload Date:</strong>
+                            <span id="metaUploadDate" style="color: #666;"></span>
                         </li>
                         <li>
-                            <strong>Analysis Date:</strong>
-                            <span id="metaAnalysisDate"></span>
+                            <strong style="color: #333;">Analysis Date:</strong>
+                            <span id="metaAnalysisDate" style="color: #666;"></span>
                         </li>
                     </ul>
 
-                    <h4 style="margin-top: 30px;">Processing Information</h4>
+                    <h4 style="color: #333; margin: 30px 0 15px;">Processing Information</h4>
                     <ul class="detail-list">
                         <li>
-                            <strong>Processing Time:</strong>
-                            <span id="metaProcTime"></span>
+                            <strong style="color: #333;">Processing Time:</strong>
+                            <span id="metaProcTime" style="color: #666;"></span>
                         </li>
                         <li>
-                            <strong>Preprocessing Status:</strong>
-                            <span id="metaPrepStatus"></span>
+                            <strong style="color: #333;">Preprocessing Status:</strong>
+                            <span id="metaPrepStatus" style="color: #666;"></span>
                         </li>
                         <li>
-                            <strong>Model Version:</strong>
-                            <span id="metaModelVersion"></span>
+                            <strong style="color: #333;">Model Version:</strong>
+                            <span id="metaModelVersion" style="color: #666;"></span>
                         </li>
                     </ul>
                 </div>
@@ -621,10 +209,10 @@
             <!-- Predictions Tab -->
             <div class="tab-content" id="predictionsTab">
                 <div class="analysis-details">
-                    <h4>Raw Predictions</h4>
-                    <p style="color: #999; margin-bottom: 15px;">Detailed prediction scores from the neural network model</p>
+                    <h4 style="color: #333; margin-bottom: 15px;">Raw Predictions</h4>
+                    <p style="color: #666; margin-bottom: 15px;">Detailed prediction scores from the neural network model</p>
                     <ul class="detail-list" id="predictionsList">
-                        <li>Loading predictions...</li>
+                        <li style="color: #666;">Loading predictions...</li>
                     </ul>
                 </div>
             </div>
@@ -632,7 +220,7 @@
             <!-- Report Tab -->
             <div class="tab-content" id="reportTab">
                 <div class="analysis-details">
-                    <h4>Clinical Report</h4>
+                    <h4 style="color: #333; margin-bottom: 20px;">Clinical Report</h4>
                     <div style="margin-top: 20px; line-height: 1.8; color: #333;">
                         <p><strong>Patient Examination Report</strong></p>
                         <p style="margin-top: 15px;">
@@ -656,18 +244,41 @@
                 </div>
             </div>
         </div>
+
+        <!-- Quick Actions -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); border: 2px solid #667eea;">
+            <h3 style="color: #333; margin-bottom: 20px;">🚀 Quick Actions</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <a href="/upload/" class="btn btn-primary" style="text-decoration: none; text-align: center; padding: 15px;">🩻 New Prediction</a>
+                <a href="/results/" class="btn btn-secondary" style="text-decoration: none; text-align: center; padding: 15px; background: white; border: 2px solid #667eea; color: #667eea;">📋 View All Results</a>
+                <button class="btn" onclick="exportPDF()" style="background: #10b981; color: white; padding: 15px;">📄 Export Report</button>
+            </div>
+        </div>
     </div>
 
     <!-- Delete Confirmation Modal -->
     <div class="modal" id="deleteModal">
         <div class="modal-content">
-            <div class="modal-header">Confirm Deletion</div>
-            <div class="modal-body">
+            <div class="modal-header" style="color: #333;">Confirm Deletion</div>
+            <div class="modal-body" style="color: #666;">
                 Are you sure you want to delete this result? This action cannot be undone.
             </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+                <button class="btn btn-danger" onclick="confirmDelete()" style="background: #ef4444; color: white;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div class="modal" id="imageViewerModal" style="display: none;">
+        <div class="modal-content" style="max-width: 90vw; max-height: 90vh;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color: #333;">X-Ray Image</h3>
+                <button class="close-btn" onclick="closeImageViewer()" style="background: none; border: none; font-size: 32px; cursor: pointer; color: #666;">&times;</button>
+            </div>
+            <div style="text-align: center; padding: 20px;">
+                <img id="viewerImage" style="max-width: 100%; max-height: 70vh; object-fit: contain;">
             </div>
         </div>
     </div>
@@ -707,6 +318,14 @@
         function displayResult(result) {
             const isPneumonia = result.prediction_label === 'PNEUMONIA';
 
+            // Apply color-coded card styling
+            const resultCard = document.getElementById('resultCard');
+            if (isPneumonia) {
+                resultCard.classList.add('result-pneumonia');
+            } else {
+                resultCard.classList.add('result-normal');
+            }
+
             // Header
             document.getElementById('pageTitle').textContent = result.image.original_filename;
             document.getElementById('filename').textContent = `Analyzed on ${new Date(result.created_at).toLocaleDateString()}`;
@@ -716,38 +335,55 @@
 
             // Result Badge
             const badge = document.getElementById('resultBadge');
-            badge.textContent = isPneumonia ? '⚠️ PNEUMONIA' : '✓ NORMAL';
-            badge.className = isPneumonia ? 'result-badge-large pneumonia' : 'result-badge-large normal';
+            if (isPneumonia) {
+                badge.innerHTML = '<span class="badge-pneumonia">⚠️ PNEUMONIA DETECTED</span>';
+            } else {
+                badge.innerHTML = '<span class="badge-normal">✓ NORMAL</span>';
+            }
 
             // Confidence
             const confBar = document.getElementById('confBar');
-            confBar.style.width = result.confidence_percentage + '%';
-            confBar.textContent = result.confidence_percentage.toFixed(1) + '%';
-            document.getElementById('confText').textContent = result.confidence_percentage.toFixed(1) + '%';
+            confBar.className = 'confidence-progress-large ' + (isPneumonia ? 'confidence-bar-pneumonia' : 'confidence-bar-normal');
+            setTimeout(() => {
+                confBar.style.width = result.confidence_percentage + '%';
+                confBar.textContent = result.confidence_percentage.toFixed(1) + '%';
+            }, 100);
+            
+            document.getElementById('confText').textContent = result.confidence_percentage.toFixed(1) + '% Confidence';
+            document.getElementById('confText').style.color = isPneumonia ? '#ef4444' : '#10b981';
 
             // Level Badge
             const levelBadge = document.getElementById('levelBadge');
-            levelBadge.textContent = result.confidence_level;
+            levelBadge.textContent = result.confidence_level + ' Confidence';
             levelBadge.className = 'level-badge level-' + result.confidence_level.toLowerCase();
+
+            // Recommendation
+            const recommendation = document.getElementById('recommendation');
+            if (isPneumonia) {
+                recommendation.innerHTML = '⚠️ <strong style="color: #ef4444;">Pneumonia indicators detected.</strong> Clinical correlation and confirming imaging by a qualified radiologist is strongly recommended. Additional testing and medical consultation may be indicated. This AI analysis should be used as a supplementary diagnostic tool only.';
+            } else {
+                recommendation.innerHTML = '✓ <strong style="color: #10b981;">No pneumonia indicators detected.</strong> The chest X-ray appears normal based on AI analysis. Continue routine monitoring. If symptoms persist or worsen, consult with a healthcare professional for comprehensive evaluation.';
+            }
 
             // Details Grid
             document.getElementById('detailResult').textContent = result.prediction_label;
+            document.getElementById('detailResult').style.color = isPneumonia ? '#ef4444' : '#10b981';
             document.getElementById('detailLevel').textContent = result.confidence_level;
             document.getElementById('detailTime').textContent = result.processing_time.toFixed(2) + 's';
             document.getElementById('detailDate').textContent = new Date(result.created_at).toLocaleString();
             document.getElementById('detailFormat').textContent = result.image.image_format || 'Unknown';
-            document.getElementById('detailDimensions').textContent = `${result.image.width} x ${result.image.height}px`;
+            document.getElementById('detailDimensions').textContent = `${result.image.width} × ${result.image.height} px`;
 
             // Metadata Tab
             document.getElementById('metaFilename').textContent = result.image.original_filename;
             document.getElementById('metaFileSize').textContent = result.image.file_size_mb.toFixed(2) + ' MB';
             document.getElementById('metaFormat').textContent = result.image.image_format;
-            document.getElementById('metaDimensions').textContent = `${result.image.width} x ${result.image.height}px`;
+            document.getElementById('metaDimensions').textContent = `${result.image.width} × ${result.image.height} px`;
             document.getElementById('metaUploadDate').textContent = new Date(result.image.upload_time).toLocaleString();
             document.getElementById('metaAnalysisDate').textContent = new Date(result.created_at).toLocaleString();
             document.getElementById('metaProcTime').textContent = result.processing_time.toFixed(2) + ' seconds';
             document.getElementById('metaPrepStatus').textContent = result.image.is_preprocessed ? 'Completed' : 'Pending';
-            document.getElementById('metaModelVersion').textContent = result.model_version ? result.model_version.version : 'Default';
+            document.getElementById('metaModelVersion').textContent = result.model_version ? result.model_version.version : 'Default (MobileNetV2)';
 
             // Predictions Tab
             if (result.raw_predictions) {
@@ -758,14 +394,14 @@
                     
                     let predHtml = '';
                     if (preds.NORMAL !== undefined) {
-                        predHtml += `<li><strong>Normal Probability:</strong><span>${(preds.NORMAL * 100).toFixed(2)}%</span></li>`;
+                        predHtml += `<li><strong style="color: #333;">Normal Probability:</strong><span style="color: #10b981; font-weight: 600;">${(preds.NORMAL * 100).toFixed(2)}%</span></li>`;
                     }
                     if (preds.PNEUMONIA !== undefined) {
-                        predHtml += `<li><strong>Pneumonia Probability:</strong><span>${(preds.PNEUMONIA * 100).toFixed(2)}%</span></li>`;
+                        predHtml += `<li><strong style="color: #333;">Pneumonia Probability:</strong><span style="color: #ef4444; font-weight: 600;">${(preds.PNEUMONIA * 100).toFixed(2)}%</span></li>`;
                     }
-                    document.getElementById('predictionsList').innerHTML = predHtml || '<li>No raw predictions available</li>';
+                    document.getElementById('predictionsList').innerHTML = predHtml || '<li style="color: #666;">No raw predictions available</li>';
                 } catch (e) {
-                    document.getElementById('predictionsList').innerHTML = '<li>Error parsing predictions</li>';
+                    document.getElementById('predictionsList').innerHTML = '<li style="color: #ef4444;">Error parsing predictions</li>';
                 }
             }
 
@@ -773,18 +409,19 @@
             document.getElementById('reportFilename').textContent = result.image.original_filename;
             document.getElementById('reportDate').textContent = new Date(result.created_at).toLocaleString();
             document.getElementById('reportPrediction').textContent = result.prediction_label;
+            document.getElementById('reportPrediction').style.color = isPneumonia ? '#ef4444' : '#10b981';
             document.getElementById('reportConfidence').textContent = result.confidence_percentage.toFixed(1) + '%';
             
             const findings = isPneumonia 
-                ? 'AI analysis indicates presence of features consistent with pneumonia. The model detected patterns in the chest X-ray that suggest pneumonia may be present.'
-                : 'AI analysis indicates no significant features consistent with pneumonia. The chest X-ray appears normal.';
+                ? 'AI analysis indicates presence of features consistent with pneumonia. The model detected patterns in the chest X-ray that suggest pneumonia may be present. These findings should be correlated with clinical symptoms and patient history.'
+                : 'AI analysis indicates no significant features consistent with pneumonia. The chest X-ray appears normal with no detected abnormalities. Lung fields appear clear bilaterally.';
             
-            const recommendation = isPneumonia
-                ? 'Clinical correlation and confirming imaging by a radiologist is recommended. Additional testing may be indicated.'
-                : 'Continues routine monitoring. No immediate action required.';
+            const reportRec = isPneumonia
+                ? 'Clinical correlation and confirming imaging by a radiologist is strongly recommended. Additional diagnostic tests such as complete blood count, blood culture, or CT scan may be indicated based on clinical presentation. Immediate medical consultation advised.'
+                : 'Continue routine monitoring. No immediate action required based on imaging. If respiratory symptoms develop or worsen, seek medical evaluation. Follow-up imaging may be considered based on clinical judgment.';
             
             document.getElementById('reportFindings').textContent = findings;
-            document.getElementById('reportRecommendation').textContent = recommendation;
+            document.getElementById('reportRecommendation').textContent = reportRec;
         }
 
         function switchTab(tabName) {
@@ -795,10 +432,19 @@
             event.target.classList.add('active');
         }
 
+        function openImageViewer() {
+            document.getElementById('viewerImage').src = document.getElementById('resultImage').src;
+            document.getElementById('imageViewerModal').style.display = 'flex';
+        }
+
+        function closeImageViewer() {
+            document.getElementById('imageViewerModal').style.display = 'none';
+        }
+
         function exportPDF() {
             if (!currentResult) return;
             
-            // Simple PDF generation using window.print
+            const isPneumonia = currentResult.prediction_label === 'PNEUMONIA';
             const printWindow = window.open('', '', 'width=900,height=600');
             const reportContent = `
                 <html>
@@ -806,48 +452,53 @@
                     <title>Pneumonia Diagnosis Report</title>
                     <style>
                         body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
-                        h1 { color: #333; } 
-                        .report-section { margin: 20px 0; }
+                        h1 { color: #333; border-bottom: 3px solid ${isPneumonia ? '#ef4444' : '#10b981'}; padding-bottom: 10px; }
+                        .report-section { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 8px; }
                         .divider { border-top: 1px solid #ddd; margin: 20px 0; }
-                        .warning { color: #c62828; font-weight: bold; }
-                        .normal { color: #2e7d32; font-weight: bold; }
+                        .warning { color: #ef4444; font-weight: bold; }
+                        .normal { color: #10b981; font-weight: bold; }
+                        .highlight { background: ${isPneumonia ? '#ffebee' : '#e8f5e9'}; padding: 15px; border-left: 4px solid ${isPneumonia ? '#ef4444' : '#10b981'}; margin: 15px 0; }
                     </style>
                 </head>
                 <body>
-                    <h1>Pneumonia Diagnosis Report</h1>
+                    <h1>🩻 Pneumonia AI Diagnosis Report</h1>
                     <div class="report-section">
                         <strong>Filename:</strong> ${currentResult.image.original_filename}<br>
                         <strong>Analysis Date:</strong> ${new Date(currentResult.created_at).toLocaleString()}<br>
-                        <strong>Processing Time:</strong> ${currentResult.processing_time.toFixed(2)} seconds
+                        <strong>Processing Time:</strong> ${currentResult.processing_time.toFixed(2)} seconds<br>
+                        <strong>Model:</strong> MobileNetV2 AI Detection System
                     </div>
                     <div class="divider"></div>
-                    <div class="report-section">
-                        <strong>Result:</strong> <span class="${currentResult.prediction_label === 'PNEUMONIA' ? 'warning' : 'normal'}">${currentResult.prediction_label}</span><br>
+                    <div class="highlight">
+                        <strong>Result:</strong> <span class="${isPneumonia ? 'warning' : 'normal'}">${currentResult.prediction_label}</span><br>
                         <strong>Confidence:</strong> ${currentResult.confidence_percentage.toFixed(1)}%<br>
                         <strong>Confidence Level:</strong> ${currentResult.confidence_level}
                     </div>
                     <div class="divider"></div>
                     <div class="report-section">
                         <h3>Findings</h3>
-                        <p>${currentResult.prediction_label === 'PNEUMONIA' 
-                            ? 'AI analysis indicates presence of features consistent with pneumonia.' 
-                            : 'AI analysis indicates no significant features consistent with pneumonia.'}</p>
+                        <p>${isPneumonia 
+                            ? 'AI analysis indicates presence of features consistent with pneumonia. The model detected patterns in the chest X-ray that suggest pneumonia may be present.' 
+                            : 'AI analysis indicates no significant features consistent with pneumonia. The chest X-ray appears normal with no detected abnormalities.'}</p>
                     </div>
                     <div class="report-section">
                         <h3>Recommendation</h3>
-                        <p>${currentResult.prediction_label === 'PNEUMONIA'
-                            ? 'Clinical correlation and confirming imaging by a radiologist is recommended.'
-                            : 'Continued routine monitoring. No immediate action required.'}</p>
+                        <p>${isPneumonia
+                            ? 'Clinical correlation and confirming imaging by a radiologist is strongly recommended. Additional diagnostic testing may be indicated.'
+                            : 'Continue routine monitoring. No immediate action required based on imaging. Follow-up if symptoms develop.'}</p>
                     </div>
-                    <p style="margin-top: 40px; font-size: 12px; color: #999;">
-                        <em>Note: This report is generated by automated AI analysis and should be reviewed by a qualified radiologist.</em>
+                    <p style="margin-top: 40px; font-size: 12px; color: #999; border-top: 2px solid #ddd; padding-top: 20px;">
+                        <em><strong>IMPORTANT DISCLAIMER:</strong> This report is generated by automated AI analysis and should be reviewed by a qualified radiologist or medical professional. This system is designed as a diagnostic assistance tool and should NOT be used as the sole basis for clinical diagnosis.</em>
+                    </p>
+                    <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                        Generated by PneumoAI Medical Diagnostics System | © 2026
                     </p>
                 </body>
                 </html>
             `;
             printWindow.document.write(reportContent);
             printWindow.document.close();
-            printWindow.print();
+            setTimeout(() => printWindow.print(), 250);
         }
 
         function deleteResult() {
@@ -859,7 +510,6 @@
         }
 
         async function confirmDelete() {
-            // Get CSRF token
             function getCookie(name) {
                 let cookieValue = null;
                 if (document.cookie && document.cookie !== '') {
@@ -885,14 +535,27 @@
                     credentials: 'same-origin'
                 });
 
-                if (response.status === 204) {
+                if (response.status === 204 || response.ok) {
                     alert('Result deleted successfully');
                     window.location.href = '/results/';
                 }
             } catch (error) {
-                alert('Error deleting result');
+                alert('Error deleting result. Please try again.');
+                console.error('Delete error:', error);
             }
         }
-        }
+
+        // Close modal on outside click
+        document.getElementById('deleteModal').addEventListener('click', (e) => {
+            if (e.target.id === 'deleteModal') {
+                closeDeleteModal();
+            }
+        });
+
+        document.getElementById('imageViewerModal').addEventListener('click', (e) => {
+            if (e.target.id === 'imageViewerModal') {
+                closeImageViewer();
+            }
+        });
     </script>
 {% endblock %}
