@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -91,7 +92,36 @@ def register_view(request):
 @login_required(login_url='xray_detector:login')
 def dashboard_view(request):
     """Render dashboard page (requires authentication)"""
-    return render(request, 'xray_detector/dashboard.html')
+    # Get user's prediction results
+    results = PredictionResult.objects.filter(
+        image__user=request.user
+    ).select_related('image').order_by('-created_at')[:10]
+    
+    # Calculate statistics
+    total_uploads = results.count()
+    normal_count = results.filter(prediction_label='NORMAL').count()
+    pneumonia_count = results.filter(prediction_label='PNEUMONIA').count()
+    
+    # Prepare history data
+    history_data = []
+    for result in results:
+        history_data.append({
+            'filename': result.image.original_filename,
+            'prediction': result.prediction_label,
+            'confidence': result.get_confidence_percentage(),
+            'date': result.created_at.strftime('%Y-%m-%d %H:%M')
+        })
+    
+    context = {
+        'total_uploads': total_uploads,
+        'total_analyzed': total_uploads,
+        'normal_count': normal_count,
+        'pneumonia_count': pneumonia_count,
+        'history': history_data,
+        'username': request.user.username
+    }
+    
+    return render(request, 'xray_detector/dashboard.html', context)
 
 
 @login_required(login_url='xray_detector:login')

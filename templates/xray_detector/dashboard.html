@@ -13,19 +13,19 @@
         <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number" id="uploadCount">0</div>
+                <div class="stat-number" id="uploadCount">{{ total_uploads }}</div>
                 <div class="stat-label">Total Uploads</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="analyzeCount">0</div>
+                <div class="stat-number" id="analyzeCount">{{ total_analyzed }}</div>
                 <div class="stat-label">Total Analyzed</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="normalCount">0</div>
+                <div class="stat-number" id="normalCount">{{ normal_count }}</div>
                 <div class="stat-label">Normal Results</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="pneumoniaCount">0</div>
+                <div class="stat-number" id="pneumoniaCount">{{ pneumonia_count }}</div>
                 <div class="stat-label">Pneumonia Results</div>
             </div>
         </div>
@@ -99,9 +99,24 @@
                     </tr>
                 </thead>
                 <tbody id="historyTable">
-                    <tr>
-                        <td colspan="4" style="text-align: center; color: #999;">No analyses yet</td>
-                    </tr>
+                    {% if history %}
+                        {% for item in history %}
+                        <tr>
+                            <td>{{ item.filename }}</td>
+                            <td>
+                                <span class="badge {{ item.prediction|lower }}">
+                                    {{ item.prediction }}
+                                </span>
+                            </td>
+                            <td>{{ item.confidence|floatformat:1 }}%</td>
+                            <td>{{ item.date }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #999;">No analyses yet</td>
+                        </tr>
+                    {% endif %}
                 </tbody>
             </table>
         </div>
@@ -109,16 +124,23 @@
 
     <script>
         let selectedFile = null;
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-        // Check authentication
-        if (!token) {
-            window.location.href = '/login/';
+        
+        // Get CSRF token from cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
-
-        // Set user name
-        document.getElementById('userName').textContent = user.username || 'Medical Professional';
+        const csrftoken = getCookie('csrftoken');
 
         // Drag and drop handlers
         const uploadArea = document.getElementById('uploadArea');
@@ -191,9 +213,10 @@
                 const response = await fetch('/api/images/upload/', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Token ${token}`
+                        'X-CSRFToken': csrftoken
                     },
-                    body: formData
+                    body: formData,
+                    credentials: 'same-origin'
                 });
 
                 const data = await response.json();
@@ -201,7 +224,10 @@
 
                 if (data.status === 'success') {
                     showResults(data);
-                    loadHistory();
+                    // Reload page to update history
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
                 } else {
                     showError(data.error || 'Analysis failed');
                     document.getElementById('previewArea').classList.add('active');
@@ -257,68 +283,6 @@
         function hideError() {
             document.getElementById('errorMessage').classList.remove('active');
         }
-
-        // Load history
-        async function loadHistory() {
-            try {
-                const response = await fetch('/api/history/', {
-                    headers: {
-                        'Authorization': `Token ${token}`
-                    }
-                });
-
-                const data = await response.json();
-                const historyTable = document.getElementById('historyTable');
-                
-                if (data.results && data.results.length > 0) {
-                    historyTable.innerHTML = data.results.map(item => `
-                        <tr>
-                            <td>${item.image.original_filename}</td>
-                            <td>
-                                <span class="badge ${item.prediction_label.toLowerCase()}">
-                                    ${item.prediction_label}
-                                </span>
-                            </td>
-                            <td>${item.confidence_percentage.toFixed(1)}%</td>
-                            <td>${new Date(item.created_at).toLocaleDateString()}</td>
-                        </tr>
-                    `).join('');
-
-                    updateStats(data.results);
-                }
-            } catch (error) {
-                console.error('Error loading history:', error);
-            }
-        }
-
-        // Update stats
-        function updateStats(results) {
-            const normalCount = results.filter(r => r.prediction_label === 'NORMAL').length;
-            const pneumoniaCount = results.length - normalCount;
-            
-            document.getElementById('uploadCount').textContent = results.length;
-            document.getElementById('analyzeCount').textContent = results.length;
-            document.getElementById('normalCount').textContent = normalCount;
-            document.getElementById('pneumoniaCount').textContent = pneumoniaCount;
-        }
-
-        // Logout
-        function logout() {
-            fetch('/api/auth/logout/', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Token ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            }).then(() => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = '/login/';
-            });
-        }
-
-        // Load initial data
-        loadHistory();
     </script>
 {% endblock %}
 
