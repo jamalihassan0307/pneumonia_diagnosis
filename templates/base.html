@@ -29,25 +29,27 @@
             <div class="nav-title">Medical AI Diagnostics</div>
         </div>
         
-        <div class="nav-links">
-            <a href="/dashboard/" class="nav-link {% block nav_dashboard %}{% endblock %}">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">☰</button>
+        
+        <div class="nav-links" id="navLinks">
+            <a href="/dashboard/" class="nav-link {% block nav_dashboard %}{% endblock %}" onclick="closeMobileMenu()">
                 <span>Dashboard</span>
             </a>
-            <a href="/upload/" class="nav-link {% block nav_upload %}{% endblock %}">
+            <a href="/upload/" class="nav-link {% block nav_upload %}{% endblock %}" onclick="closeMobileMenu()">
                 <span>🩻 New Prediction</span>
             </a>
-            <a href="/results/" class="nav-link {% block nav_results %}{% endblock %}">
+            <a href="/results/" class="nav-link {% block nav_results %}{% endblock %}" onclick="closeMobileMenu()">
                 <span>History</span>
             </a>
-            <a href="/profile/" class="nav-link {% block nav_profile %}{% endblock %}">
+            <a href="/profile/" class="nav-link {% block nav_profile %}{% endblock %}" onclick="closeMobileMenu()">
                 <span>Profile</span>
             </a>
-            <a href="/model-info/" class="nav-link {% block nav_model %}{% endblock %}">
+            <a href="/model-info/" class="nav-link {% block nav_model %}{% endblock %}" onclick="closeMobileMenu()">
                 <span>Model</span>
             </a>
         </div>
         
-        <div class="nav-right">
+        <div class="nav-right" id="navRight">
             <div class="user-info">
                 <span id="userName">{{ request.user.username }}</span>
             </div>
@@ -107,6 +109,29 @@
     {% block extra_js %}{% endblock %}
     
     <script>
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            navLinks.classList.toggle('active');
+            mobileMenuBtn.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
+        }
+
+        function closeMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            navLinks.classList.remove('active');
+            mobileMenuBtn.textContent = '☰';
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navbar = document.getElementById('navbar');
+            if (!navbar.contains(event.target)) {
+                closeMobileMenu();
+            }
+        });
+
         // Navbar scroll effect
         window.addEventListener('scroll', function() {
             const navbar = document.getElementById('navbar');

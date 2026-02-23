@@ -256,11 +256,12 @@ class XRayImageViewSet(viewsets.ModelViewSet):
         return ip
 
 
-class PredictionResultViewSet(viewsets.ReadOnlyModelViewSet):
+class PredictionResultViewSet(viewsets.ModelViewSet):
     """
-    View prediction results
+    View and delete prediction results
     GET /api/results/ - List all results for user
     GET /api/results/{id}/ - Get specific result
+    DELETE /api/results/{id}/ - Delete specific result
     """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = PredictionResultDetailSerializer
@@ -268,6 +269,23 @@ class PredictionResultViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         """Return results for current user only"""
         return PredictionResult.objects.filter(image__user=self.request.user)
+    
+    def destroy(self, request, *args, **kwargs):
+        """Delete prediction result"""
+        prediction = self.get_object()
+        image = prediction.image
+        
+        # Delete files from storage if they exist
+        if image.file_path:
+            try:
+                if default_storage.exists(image.file_path.name):
+                    default_storage.delete(image.file_path.name)
+            except:
+                pass
+        
+        # Delete database records
+        image.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
     @action(detail=True, methods=['get'])
     def detail(self, request, pk=None):

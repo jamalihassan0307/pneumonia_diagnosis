@@ -613,29 +613,6 @@
                         </li>
                     </ul>
                 </div>
-
-                <!-- Recent Analyses Card -->
-                <div class="recent-analyses" style="margin-top: 20px;">
-                    <h2>📊 Recent Analyses</h2>
-                    <p>Your most recent predictions</p>
-                    <div class="history-table-container">
-                        <table class="history-table">
-                            <thead>
-                                <tr>
-                                    <th>Filename</th>
-                                    <th>Result</th>
-                                    <th>Confidence</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recentHistory">
-                                <tr>
-                                    <td colspan="4" style="text-align: center; padding: 30px; color: #999;">No recent analyses</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -781,36 +758,5 @@
         function hideError() {
             document.getElementById('errorMessage').style.display = 'none';
         }
-
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                const response = await fetch('/api/results/?limit=5', {
-                    credentials: 'same-origin'
-                });
-                const data = await response.json();
-                
-                if (data.results && data.results.length > 0) {
-                    const tbody = document.getElementById('recentHistory');
-                    tbody.innerHTML = data.results.map(result => `
-                        <tr>
-                            <td>${result.image.original_filename}</td>
-                            <td>
-                                <span class="badge badge-${result.prediction_label.toLowerCase()}" style="padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
-                                    ${result.prediction_label}
-                                </span>
-                            </td>
-                            <td>${result.confidence_percentage.toFixed(1)}%</td>
-                            <td>
-                                <button class="btn-view" onclick="window.location.href='/result-detail/?id=${result.id}'">
-                                    View
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error('Error loading recent analyses:', error);
-            }
-        });
     </script>
 {% endblock %}

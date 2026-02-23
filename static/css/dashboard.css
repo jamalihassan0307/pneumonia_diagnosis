@@ -129,7 +129,7 @@
 
 .stat-label {
     font-size: 14px;
-    color: var(--text-secondary);
+    color: var(--bg-tertiary);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;

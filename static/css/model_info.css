@@ -18,23 +18,7 @@
     50% { transform: scale(1.05); }
 }
 
-/* Page Header */
-.page-header {
-    margin-bottom: 30px;
-    animation: fadeInUp 0.6s ease-out;
-}
 
-.page-header h1 {
-    color: #333;
-    font-size: 32px;
-    margin-bottom: 10px;
-    font-weight: 700;
-}
-
-.page-header p {
-    color: #666;
-    font-size: 16px;
-}
 
 /* Cards */
 .card {
