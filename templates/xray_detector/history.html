@@ -506,36 +506,17 @@
     </div>
 
     <script>
-        let allHistory = [];
-        const token = localStorage.getItem('token');
+        // Load history from context
+        let allHistory = {{ history|safe }};
 
-        if (!token) {
-            window.location.href = '/login/';
-        }
-
-        // Load history on page load
-        loadHistory();
-
-        async function loadHistory() {
-            try {
-                const response = await fetch('/api/history/', {
-                    headers: {
-                        'Authorization': `Token ${token}`
-                    }
-                });
-
-                const data = await response.json();
-                if (data.results && data.results.length > 0) {
-                    allHistory = data.results;
-                    displayHistory(allHistory);
-                } else {
-                    showEmptyState();
-                }
-            } catch (error) {
-                console.error('Error loading history:', error);
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (allHistory && allHistory.length > 0) {
+                displayHistory(allHistory);
+            } else {
                 showEmptyState();
             }
-        }
+        });
 
         function displayHistory(history) {
             if (history.length === 0) {
@@ -556,22 +537,22 @@
                     'LOGOUT': '🚪'
                 };
 
-                const badgeClass = item.action_type.toLowerCase().replace('_', '-');
-                const description = getActionDescription(item);
+                const badgeClass = item.action.toLowerCase().replace('_', '-');
 
                 return `
                     <div class="timeline-item">
-                        <div class="timeline-dot">${actionIcons[item.action_type] || '•'}</div>
+                        <div class="timeline-dot">${actionIcons[item.action] || '•'}</div>
                         <div class="timeline-content">
                             <div class="timeline-header">
                                 <div>
-                                    <h3 class="timeline-title">${item.action_type.replace('_', ' ')}</h3>
-                                    <div class="timeline-description">${description}</div>
+                                    <h3 class="timeline-title">${item.action.replace('_', ' ')}</h3>
+                                    <div class="timeline-description">${item.description}</div>
+                                    ${item.filename !== '-' ? `<div class="timeline-description">File: ${item.filename}</div>` : ''}
                                 </div>
-                                <span class="timeline-badge ${badgeClass}">${formatActionType(item.action_type)}</span>
+                                <span class="timeline-badge ${badgeClass}">${formatActionType(item.action)}</span>
                             </div>
-                            <div class="timeline-date">${new Date(item.timestamp).toLocaleString()}</div>
-                            ${item.ip_address ? `<div class="timeline-meta">
+                            <div class="timeline-date">${item.date}</div>
+                            ${item.ip_address !== '-' ? `<div class="timeline-meta">
                                 <div class="meta-item">
                                     <div class="meta-label">IP Address</div>
                                     <div class="meta-value">${item.ip_address}</div>
@@ -588,29 +569,17 @@
             const tableHtml = history.map(item => `
                 <tr>
                     <td>
-                        <span class="timeline-badge ${item.action_type.toLowerCase().replace('_', '-')}">
-                            ${formatActionType(item.action_type)}
+                        <span class="timeline-badge ${item.action.toLowerCase().replace('_', '-')}">
+                            ${formatActionType(item.action)}
                         </span>
                     </td>
-                    <td>${getActionDescription(item)}</td>
-                    <td>${new Date(item.timestamp).toLocaleString()}</td>
-                    <td>${item.ip_address || 'N/A'}</td>
+                    <td>${item.description}${item.filename !== '-' ? ` - ${item.filename}` : ''}</td>
+                    <td>${item.date}</td>
+                    <td>${item.ip_address}</td>
                 </tr>
             `).join('');
 
             document.getElementById('tableContent').innerHTML = tableHtml || '<tr><td colspan="4" style="text-align: center; color: #999;">No history found</td></tr>';
-        }
-
-        function getActionDescription(item) {
-            const descriptions = {
-                'UPLOAD': 'Uploaded a chest X-ray image',
-                'ANALYZE': 'Analyzed an X-ray image',
-                'VIEW_RESULT': 'Viewed analysis result',
-                'DELETE_RESULT': 'Deleted an analysis result',
-                'LOGIN': 'Logged into the system',
-                'LOGOUT': 'Logged out from the system'
-            };
-            return descriptions[item.action_type] || 'Performed an action';
         }
 
         function formatActionType(action) {
@@ -644,17 +613,17 @@
             let filtered = allHistory;
 
             if (actionType) {
-                filtered = filtered.filter(item => item.action_type === actionType);
+                filtered = filtered.filter(item => item.action === actionType);
             }
 
             if (dateFrom) {
-                filtered = filtered.filter(item => new Date(item.timestamp) >= new Date(dateFrom));
+                filtered = filtered.filter(item => new Date(item.date) >= new Date(dateFrom));
             }
 
             if (dateTo) {
                 const dateToEnd = new Date(dateTo);
                 dateToEnd.setHours(23, 59, 59, 999);
-                filtered = filtered.filter(item => new Date(item.timestamp) <= dateToEnd);
+                filtered = filtered.filter(item => new Date(item.date) <= dateToEnd);
             }
 
             displayHistory(filtered);
@@ -675,7 +644,7 @@
 
             let csv = 'Action,Description,Date & Time,IP Address\n';
             allHistory.forEach(item => {
-                csv += `"${formatActionType(item.action_type)}","${getActionDescription(item)}","${new Date(item.timestamp).toLocaleString()}","${item.ip_address || 'N/A'}"\n`;
+                csv += `"${formatActionType(item.action)}","${item.description}","${item.date}","${item.ip_address}"\n`;
             });
 
             const element = document.createElement('a');
@@ -685,20 +654,6 @@
             document.body.appendChild(element);
             element.click();
             document.body.removeChild(element);
-        }
-
-        function logout() {
-            fetch('/api/auth/logout/', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Token ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            }).then(() => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = '/login/';
-            });
         }
     </script>
 {% endblock %}

@@ -165,97 +165,42 @@
     </div>
 
     <script>
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Profile data from context
+            const user = {
+                username: '{{ user.username }}',
+                email: '{{ user.email }}',
+                first_name: '{{ user.first_name }}',
+                last_name: '{{ user.last_name }}',
+                date_joined: '{{ user.date_joined|date:"Y-m-d" }}'
+            };
+            
+            // Update view tab
+            document.getElementById('viewUsername').textContent = user.username;
+            document.getElementById('viewEmail').textContent = user.email;
+            document.getElementById('viewFirstName').textContent = user.first_name || '-';
+            document.getElementById('viewLastName').textContent = user.last_name || '-';
+            document.getElementById('viewCreated').textContent = user.date_joined;
+            
+            // Update header
+            const fullName = (user.first_name + ' ' + user.last_name).trim() || user.username;
+            document.getElementById('fullName').textContent = fullName;
+            document.getElementById('emailDisplay').textContent = user.email;
+            document.getElementById('usernameDisplay').textContent = '@' + user.username;
 
-        if (!token) {
-            window.location.href = '/login/';
-        }
+            // Update edit form
+            document.getElementById('firstName').value = user.first_name || '';
+            document.getElementById('lastName').value = user.last_name || '';
+            document.getElementById('email').value = user.email;
+            document.getElementById('usernameDisplay2').value = user.username;
 
-        // Load profile data on page load
-        loadProfileData();
-
-        async function loadProfileData() {
-            try {
-                const response = await fetch(`/api/users/${user.id}/`, {
-                    headers: {
-                        'Authorization': `Token ${token}`
-                    }
-                });
-
-                const data = await response.json();
-                
-                // Update view tab
-                document.getElementById('viewUsername').textContent = data.username;
-                document.getElementById('viewEmail').textContent = data.email;
-                document.getElementById('viewFirstName').textContent = data.first_name || '-';
-                document.getElementById('viewLastName').textContent = data.last_name || '-';
-                document.getElementById('viewCreated').textContent = new Date(data.date_joined).toLocaleDateString();
-                
-                // Update header
-                document.getElementById('fullName').textContent = `${data.first_name} ${data.last_name}` || data.username;
-                document.getElementById('emailDisplay').textContent = data.email;
-                document.getElementById('usernameDisplay').textContent = '@' + data.username;
-
-                // Update edit form
-                document.getElementById('firstName').value = data.first_name || '';
-                document.getElementById('lastName').value = data.last_name || '';
-                document.getElementById('email').value = data.email;
-                document.getElementById('usernameDisplay2').value = data.username;
-
-                // Load stats
-                loadStats();
-            } catch (error) {
-                console.error('Error loading profile:', error);
-            }
-        }
-
-        async function loadStats() {
-            try {
-                const response = await fetch('/api/history/', {
-                    headers: {
-                        'Authorization': `Token ${token}`
-                    }
-                });
-
-                const data = response.json();
-                if (data.results) {
-                    const stats = {
-                        uploads: 0,
-                        analyses: 0,
-                        normal: 0,
-                        pneumonia: 0
-                    };
-
-                    data.results.forEach(item => {
-                        if (item.action_type === 'UPLOAD') stats.uploads++;
-                        if (item.action_type === 'ANALYZE') stats.analyses++;
-                    });
-
-                    // Also fetch results for prediction counts
-                    const resultsResponse = await fetch('/api/results/', {
-                        headers: {
-                            'Authorization': `Token ${token}`
-                        }
-                    });
-
-                    const resultsData = await resultsResponse.json();
-                    if (resultsData.results) {
-                        resultsData.results.forEach(item => {
-                            if (item.prediction_label === 'NORMAL') stats.normal++;
-                            else if (item.prediction_label === 'PNEUMONIA') stats.pneumonia++;
-                        });
-                    }
-
-                    document.getElementById('statUploads').textContent = stats.uploads;
-                    document.getElementById('statAnalyses').textContent = stats.analyses;
-                    document.getElementById('statNormal').textContent = stats.normal;
-                    document.getElementById('statPneumonia').textContent = stats.pneumonia;
-                }
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
+            // Update stats from context
+            document.getElementById('statUploads').textContent = '{{ total_uploads }}';
+            document.getElementById('statAnalyses').textContent = '{{ total_uploads }}';
+            document.getElementById('statNormal').textContent = '{{ normal_count }}';
+            document.getElementById('statPneumonia').textContent = '{{ pneumonia_count }}';
+        });
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -267,69 +212,12 @@
 
         async function saveProfile(event) {
             event.preventDefault();
-            
-            const formData = {
-                first_name: document.getElementById('firstName').value,
-                last_name: document.getElementById('lastName').value,
-                email: document.getElementById('email').value
-            };
-
-            try {
-                const response = await fetch(`/api/users/${user.id}/`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Token ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                if (response.ok) {
-                    showMessage('Profile updated successfully!', 'success');
-                    loadProfileData();
-                } else {
-                    showMessage('Error updating profile', 'error');
-                }
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
+            showMessage('Profile update feature will be available soon', 'info');
         }
 
         async function changePassword(event) {
             event.preventDefault();
-            
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (newPassword !== confirmPassword) {
-                showMessage('Passwords do not match', 'error');
-                return;
-            }
-
-            const formData = {
-                current_password: document.getElementById('currentPassword').value,
-                new_password: newPassword
-            };
-
-            try {
-                const response = await fetch('/api/change-password/', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Token ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                if (response.ok) {
-                    showMessage('Password changed successfully!', 'success');
-                    resetPasswordForm();
-                } else {
-                    showMessage('Error changing password', 'error');
-                }
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
+            showMessage('Password change feature will be available soon', 'info');
         }
 
         function resetPasswordForm() {
@@ -338,10 +226,7 @@
 
         function deleteAccount() {
             if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                if (confirm('This will permanently delete all your data. Type "DELETE" to confirm.')) {
-                    // In production, implement proper deletion
-                    alert('Account deletion is not yet implemented. Please contact support.');
-                }
+                alert('Account deletion feature will be available soon. Please contact support.');
             }
         }
 
@@ -352,20 +237,6 @@
             setTimeout(() => {
                 msgElement.classList.remove('active');
             }, 5000);
-        }
-
-        function logout() {
-            fetch('/api/auth/logout/', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Token ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            }).then(() => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = '/login/';
-            });
         }
     </script>
 {% endblock %}

@@ -92,19 +92,22 @@ def register_view(request):
 @login_required(login_url='xray_detector:login')
 def dashboard_view(request):
     """Render dashboard page (requires authentication)"""
-    # Get user's prediction results
-    results = PredictionResult.objects.filter(
+    # Get all user's prediction results for statistics
+    all_results = PredictionResult.objects.filter(
         image__user=request.user
-    ).select_related('image').order_by('-created_at')[:10]
+    ).select_related('image')
     
-    # Calculate statistics
-    total_uploads = results.count()
-    normal_count = results.filter(prediction_label='NORMAL').count()
-    pneumonia_count = results.filter(prediction_label='PNEUMONIA').count()
+    # Calculate statistics on full queryset
+    total_uploads = all_results.count()
+    normal_count = all_results.filter(prediction_label='NORMAL').count()
+    pneumonia_count = all_results.filter(prediction_label='PNEUMONIA').count()
+    
+    # Get recent results for history display
+    recent_results = all_results.order_by('-created_at')[:10]
     
     # Prepare history data
     history_data = []
-    for result in results:
+    for result in recent_results:
         history_data.append({
             'filename': result.image.original_filename,
             'prediction': result.prediction_label,
@@ -127,19 +130,83 @@ def dashboard_view(request):
 @login_required(login_url='xray_detector:login')
 def results_view(request):
     """View prediction results and history"""
-    return render(request, 'xray_detector/results.html')
+    # Get all user's prediction results
+    results = PredictionResult.objects.filter(
+        image__user=request.user
+    ).select_related('image').order_by('-created_at')
+    
+    # Prepare results data
+    results_data = []
+    for result in results:
+        results_data.append({
+            'id': result.id,
+            'filename': result.image.original_filename,
+            'prediction': result.prediction_label,
+            'confidence': result.get_confidence_percentage(),
+            'date': result.created_at.strftime('%Y-%m-%d %H:%M'),
+            'image_url': result.image.file_path.url if result.image.file_path else '',
+            'processing_time': float(result.processing_time),
+            'confidence_level': result.confidence_level
+        })
+    
+    context = {
+        'results': json.dumps(results_data),
+        'username': request.user.username
+    }
+    
+    return render(request, 'xray_detector/results.html', context)
 
 
 @login_required(login_url='xray_detector:login')
 def profile_view(request):
     """View and edit user profile"""
-    return render(request, 'xray_detector/profile.html')
+    # Get user stats
+    total_uploads = PredictionResult.objects.filter(image__user=request.user).count()
+    normal_count = PredictionResult.objects.filter(
+        image__user=request.user, 
+        prediction_label='NORMAL'
+    ).count()
+    pneumonia_count = PredictionResult.objects.filter(
+        image__user=request.user, 
+        prediction_label='PNEUMONIA'
+    ).count()
+    
+    context = {
+        'user': request.user,
+        'total_uploads': total_uploads,
+        'normal_count': normal_count,
+        'pneumonia_count': pneumonia_count
+    }
+    
+    return render(request, 'xray_detector/profile.html', context)
 
 
 @login_required(login_url='xray_detector:login')
 def history_view(request):
     """View activity history"""
-    return render(request, 'xray_detector/history.html')
+    # Get user history
+    history = UserHistory.objects.filter(
+        user=request.user
+    ).select_related('image').order_by('-timestamp')
+    
+    # Prepare history data
+    history_data = []
+    for item in history:
+        history_data.append({
+            'id': item.id,
+            'action': item.action_type,
+            'description': item.get_action_type_display(),
+            'filename': item.image.original_filename if item.image else '-',
+            'date': item.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            'ip_address': item.ip_address or '-'
+        })
+    
+    context = {
+        'history': json.dumps(history_data),
+        'username': request.user.username
+    }
+    
+    return render(request, 'xray_detector/history.html', context)
 
 
 @login_required(login_url='xray_detector:login')

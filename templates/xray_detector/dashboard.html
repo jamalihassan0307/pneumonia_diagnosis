@@ -224,10 +224,8 @@
 
                 if (data.status === 'success') {
                     showResults(data);
-                    // Reload page to update history
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
+                    // Update stats and history without page reload
+                    updateDashboardData(data);
                 } else {
                     showError(data.error || 'Analysis failed');
                     document.getElementById('previewArea').classList.add('active');
@@ -271,6 +269,76 @@
             document.getElementById('resultArea').className = 'result-area';
             document.getElementById('confidenceBar').style.width = '0%';
             hideError();
+        }
+
+        // Update dashboard data dynamically
+        async function updateDashboardData(analysisData) {
+            try {
+                // Update stats counters
+                const uploadCount = document.getElementById('uploadCount');
+                const analyzeCount = document.getElementById('analyzeCount');
+                const normalCount = document.getElementById('normalCount');
+                const pneumoniaCount = document.getElementById('pneumoniaCount');
+                
+                // Increment total uploads and analyzed
+                uploadCount.textContent = parseInt(uploadCount.textContent) + 1;
+                analyzeCount.textContent = parseInt(analyzeCount.textContent) + 1;
+                
+                // Update prediction counts
+                if (analysisData.prediction === 'NORMAL') {
+                    normalCount.textContent = parseInt(normalCount.textContent) + 1;
+                } else {
+                    pneumoniaCount.textContent = parseInt(pneumoniaCount.textContent) + 1;
+                }
+                
+                // Add new row to history table
+                const historyTable = document.getElementById('historyTable');
+                
+                // Remove "No analyses yet" message if it exists
+                const noDataRow = historyTable.querySelector('td[colspan="4"]');
+                if (noDataRow) {
+                    noDataRow.parentElement.remove();
+                }
+                
+                // Create new row
+                const newRow = document.createElement('tr');
+                const now = new Date();
+                const dateStr = now.toLocaleString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                newRow.innerHTML = `
+                    <td>${selectedFile.name}</td>
+                    <td>
+                        <span class="badge ${analysisData.prediction.toLowerCase()}">
+                            ${analysisData.prediction}
+                        </span>
+                    </td>
+                    <td>${analysisData.confidence.toFixed(1)}%</td>
+                    <td>${dateStr}</td>
+                `;
+                
+                // Add to top of table with animation
+                newRow.style.opacity = '0';
+                historyTable.insertBefore(newRow, historyTable.firstChild);
+                setTimeout(() => {
+                    newRow.style.transition = 'opacity 0.5s';
+                    newRow.style.opacity = '1';
+                }, 10);
+                
+                // Keep only last 10 rows
+                const rows = historyTable.querySelectorAll('tr');
+                if (rows.length > 10) {
+                    rows[rows.length - 1].remove();
+                }
+                
+            } catch (error) {
+                console.error('Error updating dashboard:', error);
+            }
         }
 
         // Error handling

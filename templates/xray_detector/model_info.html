@@ -660,21 +660,13 @@
     </div>
 
     <script>
-        const token = localStorage.getItem('token');
-
-        if (!token) {
-            window.location.href = '/login/';
-        }
-
         // Load model information
         loadModelInfo();
 
         async function loadModelInfo() {
             try {
                 const response = await fetch('/api/model-versions/', {
-                    headers: {
-                        'Authorization': `Token ${token}`
-                    }
+                    credentials: 'same-origin'
                 });
 
                 const data = await response.json();
@@ -712,18 +704,5 @@
             document.getElementById('lastUpdated').textContent = new Date(model.updated_at).toLocaleDateString();
         }
 
-        function logout() {
-            fetch('/api/auth/logout/', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Token ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            }).then(() => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = '/login/';
-            });
-        }
     </script>
 {% endblock %}

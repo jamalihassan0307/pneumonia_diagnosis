@@ -673,13 +673,8 @@
     </div>
 
     <script>
-        const token = localStorage.getItem('token');
         const resultId = new URLSearchParams(window.location.search).get('id');
         let currentResult = null;
-
-        if (!token) {
-            window.location.href = '/login/';
-        }
 
         if (!resultId) {
             alert('Result ID not found');
@@ -691,9 +686,7 @@
         async function loadResult() {
             try {
                 const response = await fetch(`/api/results/${resultId}/`, {
-                    headers: {
-                        'Authorization': `Token ${token}`
-                    }
+                    credentials: 'same-origin'
                 });
 
                 if (!response.ok) {
@@ -866,12 +859,30 @@
         }
 
         async function confirmDelete() {
+            // Get CSRF token
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = getCookie('csrftoken');
+            
             try {
                 const response = await fetch(`/api/results/${resultId}/`, {
                     method: 'DELETE',
                     headers: {
-                        'Authorization': `Token ${token}`
-                    }
+                        'X-CSRFToken': csrftoken
+                    },
+                    credentials: 'same-origin'
                 });
 
                 if (response.status === 204) {
@@ -882,19 +893,6 @@
                 alert('Error deleting result');
             }
         }
-
-        function logout() {
-            fetch('/api/auth/logout/', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Token ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            }).then(() => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = '/login/';
-            });
         }
     </script>
 {% endblock %}
