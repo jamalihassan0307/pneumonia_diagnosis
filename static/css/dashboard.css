@@ -7,10 +7,15 @@
    DASHBOARD HEADER
    ======================================== */
 
-.page-header {
+   .page-header {
+    margin-bottom: 30px;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* .page-header {
     margin-bottom: var(--space-2xl);
     animation: fadeInDown 0.5s ease;
-}
+} */
 
 .page-header h1 {
     font-size: 36px;
