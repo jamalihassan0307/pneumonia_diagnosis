@@ -1,11 +1,26 @@
 Django==4.2.7
 djangorestframework==3.14.0
+<<<<<<< HEAD
+django-cors-headers==4.3.0
+tensorflow==2.13.0
+Pillow==10.0.0
+opencv-python==4.8.1.78
+numpy<1.24,>=1.22
+pandas
+=======
 drf-spectacular==0.26.5
 django-cors-headers==4.3.1
 tensorflow>=2.15.0,<2.18.0
 Pillow>=10.1.0
 numpy>=1.24.0,<2.0.0
+>>>>>>> 78d89b9f51d0fdbbd388483cf17b5a8558c3e832
 gunicorn==21.2.0
 whitenoise==6.6.0
 python-dotenv==1.0.0
+<<<<<<< HEAD
+matplotlib
+psycopg2-binary==2.9.7
+h5py==3.10.0
+=======
 Pillow>=10.1.0
+>>>>>>> 78d89b9f51d0fdbbd388483cf17b5a8558c3e832

@@ -38,11 +38,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+<<<<<<< HEAD:pneumonia_config/settings.py
+    
+    # Third-party apps
+    'rest_framework',
+    'corsheaders',
+    
+    # Local apps
+    'model_service',
+=======
     'rest_framework',
     'rest_framework.authtoken',
     'drf_spectacular',
     'corsheaders',
     'xray_detector',  # Our pneumonia detection app
+>>>>>>> 78d89b9f51d0fdbbd388483cf17b5a8558c3e832:pneumonia_diagnosis/settings.py
 ]
 
 MIDDLEWARE = [
@@ -179,5 +189,50 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8000',
 ]
 
+<<<<<<< HEAD:pneumonia_config/settings.py
+# ML Model Configuration
+ML_MODEL_PATH = BASE_DIR / 'model_service' / 'mobilenetv2.h5'
+ML_MODEL_INPUT_SIZE = (224, 224)
+
+# Django REST Framework Configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+}
+
+# CORS Configuration
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+=======
 # Token auth settings
 AUTH_USER_MODEL = 'auth.User'
+>>>>>>> 78d89b9f51d0fdbbd388483cf17b5a8558c3e832:pneumonia_diagnosis/settings.py
