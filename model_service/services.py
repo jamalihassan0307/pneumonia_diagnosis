@@ -14,14 +14,22 @@ import h5py
 
 logger = logging.getLogger(__name__)
 
-# Try to import TensorFlow, but gracefully handle if not available
+# Try to import TensorFlow and OpenCV, but gracefully handle if not available
 try:
     import tensorflow as tf
     TENSORFLOW_AVAILABLE = True
 except ImportError:
     tf = None
     TENSORFLOW_AVAILABLE = False
-    logger.warning("TensorFlow not installed. Install with: pip install tensorflow or see TENSORFLOW_SETUP.md")
+    logger.warning("TensorFlow not installed. Install with: pip install tensorflow")
+
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    cv2 = None
+    CV2_AVAILABLE = False
+    logger.debug("OpenCV not installed. Will use PIL as fallback.")
 
 from django.core.files.base import ContentFile
 from django.utils import timezone
@@ -111,65 +119,73 @@ class DemoModeHelper:
 class ImagePreprocessor:
     """
     Handles preprocessing of uploaded X-ray images
-    Normalizes images to model input requirements
+    MATCHES EXACTLY the Flask app preprocessing for correct predictions
     """
     
     DEFAULT_SIZE = (224, 224)
-    # Grayscale normalization (X-rays are grayscale)
-    MEAN = 0.5
-    STD = 0.5
     
     @staticmethod
     def preprocess_image(image_path, target_size=DEFAULT_SIZE):
         """
-        Preprocess a single image for model inference
+        Preprocess image EXACTLY like the working Flask application
         
         Args:
             image_path: Path to image file
             target_size: Tuple (height, width) for resizing
             
         Returns:
-            Preprocessed image array ready for model
+            Preprocessed image array ready for model (1, 224, 224, 1)
             
-        Algorithm from SDD Section 5.2.1
+        IMPORTANT: This MUST match the Flask app preprocessing exactly:
+        1. Read as grayscale
+        2. Resize to 224x224
+        3. Normalize to [0, 1] by dividing by 255
+        4. Add batch and channel dimensions
         """
         try:
             start_time = time.time()
             
-            # Load image
-            img = Image.open(image_path)
+            # Read image using OpenCV (same as Flask app)
+            try:
+                import cv2
+                # Read image in grayscale
+                img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
+                
+                if img is None:
+                    raise ValueError("Could not read image with OpenCV")
+                
+                # Resize to 224x224
+                img = cv2.resize(img, target_size)
+                
+            except ImportError:
+                # Fallback to PIL if OpenCV not available
+                img_pil = Image.open(image_path)
+                
+                # Convert to grayscale
+                if img_pil.mode != 'L':
+                    img_pil = img_pil.convert('L')
+                
+                # Resize
+                img_pil = img_pil.resize(target_size, Image.Resampling.LANCZOS)
+                
+                # Convert to numpy
+                img = np.array(img_pil)
             
-            # Convert to grayscale (X-rays are grayscale)
-            if img.mode != 'L':
-                img = img.convert('L')
+            # Normalize to [0, 1] (EXACTLY like Flask app)
+            img = img.astype(np.float32) / 255.0
             
-            # Resize image
-            img_resized = img.resize(target_size, Image.Resampling.LANCZOS)
-            
-            # Convert to numpy array
-            img_array = np.array(img_resized, dtype=np.float32)
-            
-            # Normalize to [0, 1]
-            img_normalized = img_array / 255.0
-            
-            # Apply normalization
-            img_normalized = (img_normalized - ImagePreprocessor.MEAN) / ImagePreprocessor.STD
-            
-            # Keep as single channel (grayscale)
-            # The model will handle channel conversion internally if needed
-            img_normalized = np.expand_dims(img_normalized, axis=-1)
-            
-            # Add batch dimension
-            img_batch = np.expand_dims(img_normalized, axis=0)
+            # Add batch and channel dimensions (EXACTLY like Flask app)
+            img = np.expand_dims(img, axis=0)      # Add batch dimension: (224, 224) -> (1, 224, 224)
+            img = np.expand_dims(img, axis=-1)     # Add channel dimension: (1, 224, 224) -> (1, 224, 224, 1)
             
             elapsed = time.time() - start_time
             
             return {
                 'status': 'success',
-                'data': img_batch,
+                'data': img,
                 'processing_time': elapsed,
-                'original_shape': np.array(img).shape,
-                'processed_shape': img_batch.shape
+                'original_shape': img.shape,
+                'processed_shape': img.shape
             }
             
         except Exception as e:
@@ -178,6 +194,11 @@ class ImagePreprocessor:
                 'error': str(e),
                 'processing_time': 0
             }
+
+    @staticmethod
+    def preprocess(image_path, target_size=DEFAULT_SIZE):
+        """Backward-compatible alias for preprocess_image."""
+        return ImagePreprocessor.preprocess_image(image_path, target_size)
     
     @staticmethod
     def validate_image(image_path, max_size_mb=10):
@@ -233,13 +254,15 @@ class PneumoniaDetectionService:
     @classmethod
     def get_model(cls, force_reload=False):
         """
-        Load and cache the pre-trained model
+        Load the EXACT trained model from H5 file (like Flask app)
         
         Args:
             force_reload: Force reloading even if cached
             
         Returns:
-            Loaded TensorFlow model (or None if failed - will fall back to demo mode)
+            Loaded TensorFlow model with grayscale input (1, 224, 224, 1)
+            
+        IMPORTANT: Must load the exact trained model, not create a new one
         """
         if cls._model is None or force_reload:
             try:
@@ -256,57 +279,123 @@ class PneumoniaDetectionService:
                     logger.warning(f"Model not found at {model_path}, using demo mode")
                     return None
                 
-                logger.info(f"Loading model from {model_path}")
+                logger.info(f"Loading trained model from {model_path}")
                 
-                # Try standard loading first
+                # Try loading with compile=False to avoid optimizer issues
                 try:
-                    cls._model = tf.keras.models.load_model(str(model_path))
-                    cls._model_loaded_from = "H5_ORIGINAL"
-                    logger.info("✓ Model loaded from original H5 file")
+                    # Use legacy Keras API for better compatibility with old H5 files
+                    import warnings
+                    warnings.filterwarnings('ignore')
+                    cls._model = tf.keras.models.load_model(str(model_path), compile=False)
+                    cls._model_loaded_from = "H5_TRAINED_MODEL"
+                    logger.info("✓ Trained model loaded successfully (input: grayscale 224x224x1)")
                     
                 except Exception as load_error:
-                    # Original model file incompatible, try advanced loading
-                    logger.warning(f"Standard loading failed: {str(load_error)[:100]}...")
-                    logger.info("Attempting advanced model recovery...")
+                    # Try with custom object to handle batch_shape parameter
+                    logger.warning(f"Standard load failed: {str(load_error)[:80]}...")
+                    logger.info("Trying custom loader to fix batch_shape issue...")
                     
                     try:
-                        # Try to extract model info and create compatible architecture
-                        model_info = cls._extract_model_info(model_path)
+                        # Read and modify the model config to remove batch_shape
+                        import json
+                        import h5py
                         
-                        if model_info:
-                            logger.info(f"Model info extracted: Input={model_info['input_shape']}")
-                            
-                            # For pneumonia detection, we know it should be binary classification
-                            # Create a fresh model with learned preprocessing for grayscale
-                            cls._model = cls._create_pneumonia_model(model_info['input_shape'])
-                            cls._model_loaded_from = "FRESH_TRAINED_COMPATIBLE"
-                            
-                            # Try to load any available weights
-                            try:
-                                cls._model.load_weights(str(model_path), by_name=True, skip_mismatch=True)
-                                logger.info("✓ Partial weights loaded into new model")
-                            except:
-                                logger.warning("Could not load weights, using fresh model")
-                        else:
-                            raise ValueError("Could not extract model info")
-                    
-                    except Exception as recovery_error:
-                        logger.error(f"Advanced recovery failed: {str(recovery_error)[:100]}...")
-                        logger.info("Creating fresh MobileNetV2 with grayscale input layer...")
+                        with h5py.File(str(model_path), 'r') as f:
+                            if 'model_config' in f.attrs:
+                                config_str = f.attrs['model_config']
+                                if isinstance(config_str, bytes):
+                                    config_str = config_str.decode('utf-8')
+                                
+                                config = json.loads(config_str)
+                                
+                                # Replace batch_shape with shape in all InputLayers
+                                if 'config' in config and 'layers' in config['config']:
+                                    for layer in config['config']['layers']:
+                                        if layer.get('class_name') == 'InputLayer':
+                                            layer_config = layer.get('config', {})
+                                            if 'batch_shape' in layer_config:
+                                                batch_shape = layer_config.pop('batch_shape')
+                                                if batch_shape and len(batch_shape) > 1:
+                                                    layer_config['shape'] = batch_shape[1:]
+                                
+                                # Create model from modified config
+                                cls._model = tf.keras.models.model_from_json(json.dumps(config))
+                                
+                                # Load weights into the model
+                                cls._model.load_weights(str(model_path))
+                                
+                                cls._model_loaded_from = "H5_FIXED_CONFIG"
+                                logger.info("✓ Model loaded with fixed config (batch_shape -> shape)")
+                                
+                    except Exception as custom_error:
+                        logger.warning(f"Custom loader failed: {str(custom_error)[:80]}...")
+                        logger.info("Trying compatibility mode with safe_mode=False...")
                         
                         try:
-                            # Create MobileNetV2-based model that handles grayscale input
-                            cls._model = cls._create_grayscale_mobilenet()
-                            cls._model_loaded_from = "FRESH_MOBILENET_V2"
-                            logger.info("✓ Fresh MobileNetV2 model created")
-                        
-                        except Exception as final_error:
-                            logger.error(f"Final fallback failed: {str(final_error)}")
-                            cls._model = None
-                            return None
+                            cls._model = tf.keras.models.load_model(
+                                str(model_path), 
+                                compile=False,
+                                safe_mode=False
+                            )
+                            cls._model_loaded_from = "H5_COMPAT_MODE"
+                            logger.info("✓ Model loaded with compatibility mode")
+                            
+                        except Exception as compat_error:
+                            # Last resort: reconstruct exact H5 architecture and load weights
+                            logger.warning(f"Compatibility mode failed: {str(compat_error)[:80]}...")
+                            logger.info("Reconstructing exact model architecture from H5 file...")
+                            
+                            try:
+                                from tensorflow.keras import layers, models
+                                
+                                # Exact architecture from H5 inspection:
+                                # 1. Input: (224, 224, 1) grayscale
+                                # 2. Conv2D: 1x1 to convert grayscale -> 3 channels  
+                                # 3. MobileNetV2 backbone
+                                # 4. GlobalAveragePooling2D
+                                # 5. Dense 256
+                                # 6. Dropout 
+                                # 7. Dense 1 sigmoid
+                                
+                                inputs = layers.Input(shape=(224, 224, 1), name='input_layer_1')
+                                
+                                # Learned grayscale-to-RGB conversion (1x1 conv)
+                                x = layers.Conv2D(3, (1, 1), padding='same', name='conv2d')(inputs)
+                                
+                                # MobileNetV2 backbone (matches 'mobilenetv2_1.00_224' in H5)
+                                base_model = tf.keras.applications.MobileNetV2(
+                                    input_shape=(224, 224, 3),
+                                    include_top=False,
+                                    weights=None  # Will load from H5 file
+                                )
+                                # Rename to match H5 structure
+                                base_model._name = 'mobilenetv2_1.00_224'
+                                
+                                x = base_model(x)
+                                x = layers.GlobalAveragePooling2D(name='global_average_pooling2d')(x)
+                                x = layers.Dense(256, activation='relu', name='dense')(x)
+                                x = layers.Dropout(0.5, name='dropout')(x)
+                                
+                                # Single sigmoid output (0=NORMAL, 1=PNEUMONIA)
+                                outputs = layers.Dense(1, activation='sigmoid', name='dense_1')(x)
+                                
+                                cls._model = models.Model(inputs=inputs, outputs=outputs, name='functional')
+                                
+                                # Load ALL weights from H5 file
+                                cls._model.load_weights(str(model_path))
+                                cls._model_loaded_from = "H5_RECONSTRUCTED"
+                                logger.info("✓ Exact model architecture reconstructed, all weights loaded")
+                                
+                            except Exception as final_error:
+                                logger.error(f"All loading strategies failed: {str(final_error)}")
+                                cls._model = None
+                                return None
                 
                 cls._model_path = str(model_path)
                 logger.info(f"Model source: {cls._model_loaded_from}")
+                logger.info(f"Model input shape: {cls._model.input_shape}")
+                logger.info(f"Model output shape: {cls._model.output_shape}")
+                
                 return cls._model
                 
             except Exception as e:
@@ -380,59 +469,57 @@ class PneumoniaDetectionService:
             return None
     
     @staticmethod
-    def _create_grayscale_mobilenet():
-        """Create MobileNetV2 that accepts grayscale input"""
+    def _create_simple_grayscale_cnn():
+        """
+        Create a simple CNN model for grayscale input (224, 224, 1)
+        This is used as fallback when H5 file won't load
+        Output: Single sigmoid value (like the trained model)
+        """
         try:
-            # Input layer for grayscale
-            inputs = tf.keras.Input(shape=(224, 224, 1))
+            from tensorflow.keras import layers, models
             
-            # Convert grayscale to RGB
-            x = tf.keras.layers.Conv2D(3, (1, 1), padding='same')(inputs)
+            model = models.Sequential([
+                # Input layer
+                layers.Input(shape=(224, 224, 1)),
+                
+                # Conv block 1
+                layers.Conv2D(32, (3, 3), activation='relu', padding='same'),
+                layers.MaxPooling2D((2, 2)),
+                
+                # Conv block 2
+                layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
+                layers.MaxPooling2D((2, 2)),
+                
+                # Conv block 3
+                layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+                layers.MaxPooling2D((2, 2)),
+                
+                # Dense layers
+                layers.Flatten(),
+                layers.Dense(256, activation='relu'),
+                layers.Dropout(0.5),
+                layers.Dense(128, activation='relu'),
+                layers.Dropout(0.5),
+                
+                # Output: single sigmoid (0=NORMAL, 1=PNEUMONIA)
+                layers.Dense(1, activation='sigmoid')
+            ])
             
-            # MobileNetV2 base
-            base_model = tf.keras.applications.MobileNetV2(
-                input_shape=(224, 224, 3),
-                include_top=False,
-                weights='imagenet'
-            )
-            base_model.trainable = False
-            
-            x = base_model(x, training=False)
-            x = tf.keras.layers.GlobalAveragePooling2D()(x)
-            x = tf.keras.layers.Dense(256, activation='relu')(x)
-            x = tf.keras.layers.Dropout(0.2)(x)
-            
-            # Binary classification: Normal vs Pneumonia
-            outputs = tf.keras.layers.Dense(2, activation='softmax', name='predictions')(x)
-            
-            model = tf.keras.Model(inputs=inputs, outputs=outputs, name='PneumoniaDetector')
-            logger.info("Created grayscale MobileNetV2 model")
+            logger.info("Created fallback grayscale CNN model")
             return model
         
         except Exception as e:
-            logger.error(f"Failed to create grayscale model: {e}")
+            logger.error(f"Failed to create fallback CNN: {e}")
             return None
     
     @classmethod
     def predict(cls, preprocessed_image):
         """
-        Perform pneumonia detection on preprocessed image
-        
-        Args:
-            preprocessed_image: Preprocessed image array (batch)
-            
-        Returns:
-            Dictionary with prediction results, or None to trigger demo mode
+        Perform inference on preprocessed image using loaded model
+        Matches Flask app prediction logic EXACTLY
         """
         try:
-            # If TensorFlow not available, use demo mode
-            if not TENSORFLOW_AVAILABLE or tf is None:
-                logger.debug("TensorFlow not available, will use demo mode")
-                return None
-            
             start_time = time.time()
-            
-            # Load model
             model = cls.get_model()
             
             # If model loading failed, use demo mode
@@ -443,22 +530,23 @@ class PneumoniaDetectionService:
             # Perform inference
             predictions = model.predict(preprocessed_image, verbose=0)
             
-            # Get prediction details
-            confidence_normal = float(predictions[0][0])
-            confidence_pneumonia = float(predictions[0][1])
+            # CRITICAL: Match Flask app prediction logic EXACTLY
+            # The model outputs a single value (sigmoid), not 2-class softmax
+            confidence = float(predictions[0][0])
             
-            # Determine label
-            if confidence_pneumonia > confidence_normal:
+            # Determine class based on Flask app logic
+            if confidence > 0.5:
                 label = 'PNEUMONIA'
-                confidence = confidence_pneumonia
+                confidence_score = confidence
+                confidence_pct = confidence * 100
             else:
                 label = 'NORMAL'
-                confidence = confidence_normal
+                confidence_score = 1 - confidence
+                confidence_pct = (1 - confidence) * 100
             
             elapsed = time.time() - start_time
             
             # Determine confidence level
-            confidence_pct = confidence * 100
             if confidence_pct >= 95:
                 confidence_level = 'HIGH'
             elif confidence_pct >= 80:
@@ -469,15 +557,16 @@ class PneumoniaDetectionService:
             return {
                 'status': 'success',
                 'prediction_label': label,
-                'confidence_score': confidence,
+                'confidence_score': confidence_score,
                 'confidence_percentage': confidence_pct,
                 'confidence_level': confidence_level,
-                'confidence_normal': confidence_normal,
-                'confidence_pneumonia': confidence_pneumonia,
+                'confidence_normal': 1 - confidence if label == 'NORMAL' else confidence,
+                'confidence_pneumonia': confidence if label == 'PNEUMONIA' else 1 - confidence,
                 'processing_time': elapsed,
                 'raw_predictions': {
-                    'NORMAL': float(predictions[0][0]),
-                    'PNEUMONIA': float(predictions[0][1])
+                    'raw_score': confidence,
+                    'NORMAL': 1 - confidence,
+                    'PNEUMONIA': confidence
                 }
             }
             
@@ -545,6 +634,13 @@ class DiagnosisService:
                 'confidence_level': prediction_result['confidence_level'],
                 'raw_predictions': prediction_result['raw_predictions']
             }
+
+            # Flat fields for compatibility with older callers/tests
+            result['prediction_label'] = prediction_result['prediction_label']
+            result['confidence_score'] = prediction_result['confidence_score']
+            result['confidence_percentage'] = prediction_result['confidence_percentage']
+            result['confidence_level'] = prediction_result['confidence_level']
+            result['raw_predictions'] = prediction_result['raw_predictions']
             
             # Add demo mode note if applicable
             if prediction_result.get('demo_mode'):

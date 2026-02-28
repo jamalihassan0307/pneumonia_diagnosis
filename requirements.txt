@@ -1,6 +1,9 @@
 Django==4.2.7
+djangorestframework==3.14.0
+django-cors-headers==4.3.0
 tensorflow==2.13.0
 Pillow==10.0.0
+opencv-python==4.8.1.78
 numpy<1.24,>=1.22
 pandas
 gunicorn==21.2.0
@@ -8,3 +11,4 @@ whitenoise==6.5.0
 python-dotenv==1.0.0
 matplotlib
 psycopg2-binary==2.9.7
+h5py==3.10.0

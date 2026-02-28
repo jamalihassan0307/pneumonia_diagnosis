@@ -3,7 +3,7 @@ URL Configuration for model_service app
 Maps URLs to views for pneumonia diagnosis system
 """
 
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 app_name = 'model_service'
@@ -29,6 +29,9 @@ urlpatterns = [
     path('history/', views.history_view, name='history'),
     path('delete/<int:result_id>/', views.delete_result_view, name='delete'),
     
-    # API Endpoints
+    # Legacy API Endpoint
     path('api/diagnose/', views.api_diagnose, name='api_diagnose'),
+    
+    # REST API Endpoints (Django REST Framework)
+    path('api/v1/', include('model_service.api_urls', namespace='api')),
 ]
