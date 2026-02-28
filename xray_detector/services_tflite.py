@@ -51,22 +51,22 @@ def get_tflite_interpreter():
                 import tensorflow as tf
                 tflite = tf.lite
             
-            # Determine model path - try quantized first, then standard
-            quantized_model_path = os.path.join(
-                settings.ML_MODELS_PATH, 
-                'mobilenetv2_pneumonia_model_quantized.tflite'
-            )
+            # Determine model path - try standard first for better compatibility
             standard_model_path = os.path.join(
                 settings.ML_MODELS_PATH, 
                 'mobilenetv2_pneumonia_model.tflite'
             )
+            quantized_model_path = os.path.join(
+                settings.ML_MODELS_PATH, 
+                'mobilenetv2_pneumonia_model_quantized.tflite'
+            )
             
-            if os.path.exists(quantized_model_path):
+            if os.path.exists(standard_model_path):
+                model_path = standard_model_path
+                logger.info("Using standard TFLite model (better compatibility)")
+            elif os.path.exists(quantized_model_path):
                 model_path = quantized_model_path
                 logger.info("Using quantized TFLite model (smaller size)")
-            elif os.path.exists(standard_model_path):
-                model_path = standard_model_path
-                logger.info("Using standard TFLite model")
             else:
                 raise FileNotFoundError(
                     f"TFLite model file not found. Please convert your model first:\n"
