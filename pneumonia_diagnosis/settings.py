@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     
     # Local apps
     'xray_detector',
-    'model_service',
 ]
 
 MIDDLEWARE = [
