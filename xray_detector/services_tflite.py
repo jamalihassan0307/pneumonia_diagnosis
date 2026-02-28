@@ -251,3 +251,43 @@ def predict_pneumonia(image_file):
 
 # For backwards compatibility
 predict_pneumonia_with_tflite = predict_with_tflite
+
+
+def validate_image_file(uploaded_file):
+    """
+    Validate uploaded image file.
+    
+    Checks:
+    - File extension is allowed
+    - File size is within limit
+    - File is a valid image
+    
+    Args:
+        uploaded_file: Django UploadedFile object
+        
+    Returns:
+        Tuple (is_valid, error_message)
+        
+    Example:
+        (True, None) if valid
+        (False, "Invalid file extension") if invalid
+    """
+    # Check file extension
+    file_ext = os.path.splitext(uploaded_file.name)[1].lower()
+    if file_ext not in settings.ALLOWED_IMAGE_EXTENSIONS:
+        return False, f"Invalid file extension. Allowed: {', '.join(settings.ALLOWED_IMAGE_EXTENSIONS)}"
+    
+    # Check file size (16MB limit)
+    max_size = 16 * 1024 * 1024  # 16MB in bytes
+    if uploaded_file.size > max_size:
+        return False, f"File too large. Maximum size: 16MB"
+    
+    # Try to open image to verify it's valid
+    try:
+        img = Image.open(uploaded_file)
+        img.verify()
+        # Reset file pointer after verify
+        uploaded_file.seek(0)
+        return True, None
+    except Exception as e:
+        return False, f"Invalid or corrupted image file: {str(e)}"
