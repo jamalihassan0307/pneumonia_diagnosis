@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - Pneumonia Diagnosis System{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+    <div class="main-container">
+        <div class="page-header">
+            <h1>📊 Dashboard</h1>
+            <p style="color: #666; margin-top: 10px;">Overview of your pneumonia detection system</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card success">
+                <div class="stat-icon">📤</div>
+                <div class="stat-number" data-counter="{{ total_uploads }}" data-duration="2000">0</div>
+                <div class="stat-label1">Total Uploads</div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-icon">🔍</div>
+                <div class="stat-number" data-counter="{{ total_analyzed }}" data-duration="2000">0</div>
+                <div class="stat-label">Total Analyzed</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon">✓</div>
+                <div class="stat-number" data-counter="{{ normal_count }}" data-duration="2000">0</div>
+                <div class="stat-label1">Normal Results</div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-icon">⚠</div>
+                <div class="stat-number" data-counter="{{ pneumonia_count }}" data-duration="2000">0</div>
+                <div class="stat-label1">Pneumonia Results</div>
+            </div>
+        </div>
+
+       
+
+        <!-- Recent Analyses -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">📋 Recent Analyses</h2>
+                <a href="/results/" style="color: #667eea; text-decoration: none; font-weight: 600;">View All →</a>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Result</th>
+                            <th>Confidence</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTable">
+                        {% if recent_results %}
+                            {% for item in recent_results %}
+                            <tr>
+                                <td>{{ item.image.original_filename }}</td>
+                                <td>
+                                    <span class="badge {% if item.prediction_label == 'NORMAL' %}badge-normal{% else %}badge-pneumonia{% endif %}">
+                                        {{ item.prediction_label }}
+                                    </span>
+                                </td>
+                                <td>{{ item.confidence_percentage|floatformat:1 }}%</td>
+                                <td>{{ item.created_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <a href="/result-detail/?id={{ item.id }}" class="btn btn-sm btn-primary" style="padding: 6px 12px; font-size: 12px; text-decoration: none;">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #999; padding: 30px;">
+                                    No analyses yet. <a href="/upload/" style="color: #667eea;">Upload your first X-ray</a>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">⚡ System Status</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmin(200px, 1fr)); gap: 20px;">
+                <div style="padding: 15px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
+                    <div style="font-size: 12px; color: #2e7d32; text-transform: uppercase; font-weight: 600; margin-bottom: 5px;">AI Model</div>
+                    <div style="font-size: 16px; color: #1b5e20; font-weight: 600;">✓ Active</div>
+                </div>
+                <div style="padding: 15px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
+                    <div style="font-size: 12px; color: #2e7d32; text-transform: uppercase; font-weight: 600; margin-bottom: 5px;">Upload Status</div>
+                    <div style="font-size: 16px; color: #1b5e20; font-weight: 600;">✓ Ready</div>
+                </div>
+                <div style="padding: 15px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
+                    <div style="font-size: 12px; color: #2e7d32; text-transform: uppercase; font-weight: 600; margin-bottom: 5px;">Model Accuracy</div>
+                    <div style="font-size: 16px; color: #1b5e20; font-weight: 600;">95.2%</div>
+                </div>
+                <div style="padding: 15px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
+                    <div style="font-size: 12px; color: #2e7d32; text-transform: uppercase; font-weight: 600; margin-bottom: 5px;">Last Updated</div>
+                    <div style="font-size: 16px; color: #1b5e20; font-weight: 600;">Today</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize counter animations on page load document.addEventListener('DOMContentLoaded', function() {
+            // Animate all counters
+            const counters = document.querySelectorAll('[data-counter]');
+            counters.forEach(counter => {
+                const target = parseInt(counter.getAttribute('data-counter'));
+                const duration = parseInt(counter.getAttribute('data-duration')) || 2000;
+                
+                if (target && !isNaN(target)) {
+                    animateCounter(counter, 0, target, duration);
+                }
+            });
+        });
+
+        function animateCounter(element, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                element.textContent = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+    </script>
+{% endblock %}
+

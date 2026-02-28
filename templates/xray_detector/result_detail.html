@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Result Detail - Pneumonia Diagnosis System{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/result_detail.css' %}">
+    <style>
+        /* Enhanced Color-Coded Styling */
+        .result-normal {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+            border-left: 5px solid #10b981;
+        }
+        
+        .result-pneumonia {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+            border-left: 5px solid #ef4444;
+        }
+        
+        .badge-normal {
+            background: #10b981 !important;
+            color: white !important;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 18px;
+            display: inline-flex;align-items: center;
+            gap: 8px;
+        }
+        
+        .badge-pneumonia {
+            background: #ef4444 !important;
+            color: white !important;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .confidence-bar-normal {
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%) !important;
+        }
+        
+        .confidence-bar-pneumonia {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%) !important;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .breadcrumb {
+            margin-bottom: 20px;
+        }
+        
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
+{% endblock %}
+
+{% block nav_results %}active{% endblock %}
+
+{% block content %}
+    <div class="main-container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="/results/">← Back to History</a>
+        </div>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1 id="pageTitle" style="color: #333;">Result Details</h1>
+                <p style="color: #666; margin-top: 5px;" id="filename"></p>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-success" onclick="exportPDF()" style="background: #10b981; color: white;">📄 Export PDF</button>
+                <button class="btn btn-danger" onclick="deleteResult()" style="background: #ef4444; color: white;">🗑️ Delete</button>
+            </div>
+        </div>
+
+        <!-- Result Summary Card -->
+        <div class="card" id="resultCard">
+            <div class="result-summary">
+                <!-- Image -->
+                <div class="image-container">
+                    <img id="resultImage" alt="X-ray image" style="max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; cursor: pointer;" onclick="openImageViewer()">
+                </div>
+
+                <!-- Result Box -->
+                <div class="result-box">
+                    <div id="resultBadge" style="font-size: 32px; font-weight: 700; margin-bottom: 20px;"></div>
+
+                    <div class="confidence-section">
+                        <h3 style="color: #333; margin-bottom: 15px; font-size: 18px;">Confidence Score</h3>
+                        <div class="confidence-bar-large">
+                            <div class="confidence-progress-large" id="confBar" style="display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; transition: width 1s ease;"></div>
+                        </div>
+                        <div class="confidence-text" id="confText" style="font-size: 24px; font-weight: bold; color: #333; margin: 15px 0;"></div>
+                        <div>
+                            <span class="level-badge" id="levelBadge"></span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #f0f0f0;">
+                        <h4 style="color: #333; margin-bottom: 15px;">Recommendation</h4>
+                        <p id="recommendation" style="color: #666; line-height: 1.8;"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details Grid -->
+            <h3 style="color: #333; margin: 40px 0 20px;">📊 Analysis Details</h3>
+            <div class="details-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Analysis Result</div>
+                    <div class="detail-value" id="detailResult" style="color: #333;"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Confidence Level</div>
+                    <div class="detail-value" id="detailLevel" style="color: #333;"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Processing Time</div>
+                    <div class="detail-value" id="detailTime" style="color: #333;"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Analysis Date</div>
+                    <div class="detail-value" id="detailDate" style="color: #333;"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Image Format</div>
+                    <div class="detail-value" id="detailFormat" style="color: #333;"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Image Dimensions</div>
+                    <div class="detail-value" id="detailDimensions" style="color: #333;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Information Card -->
+        <div class="card">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('metadata')">📋 Metadata</button>
+                <button class="tab-btn" onclick="switchTab('predictions')">🧬 Predictions</button>
+                <button class="tab-btn" onclick="switchTab('report')">📝 Clinical Report</button>
+            </div>
+
+            <!-- Metadata Tab -->
+            <div class="tab-content active" id="metadataTab">
+                <div class="analysis-details">
+                    <h4 style="color: #333; margin-bottom: 15px;">File Information</h4>
+                    <ul class="detail-list">
+                        <li>
+                            <strong style="color: #333;">Filename:</strong>
+                            <span id="metaFilename" style="color: #666;"></span>
+                        </li>
+                        <li>
+                            <strong style="color: #333;">File Size:</strong>
+                            <span id="metaFileSize" style="color: #666;"></span>
+                        </li>
+                        <li>
+                            <strong style="color: #333;">Format:</strong>
+                            <span id="metaFormat" style="color: #666;"></span>
+                        </li>
+                        <li>
+                            <strong style="color: #333;">Dimensions:</strong>
+                            <span id="metaDimensions" style="color: #666;"></span>
+                        </li>
+                        <li>
+                            <strong style="color: #333;">Upload Date:</strong>
+                            <span id="metaUploadDate" style="color: #666;"></span>
+                        </li>
+                        <li>
+                            <strong style="color: #333;">Analysis Date:</strong>
+                            <span id="metaAnalysisDate" style="color: #666;"></span>
+                        </li>
+                    </ul>
+
+                    <h4 style="color: #333; margin: 30px 0 15px;">Processing Information</h4>
+                    <ul class="detail-list">
+                        <li>
+                            <strong style="color: #333;">Processing Time:</strong>
+                            <span id="metaProcTime" style="color: #666;"></span>
+                        </li>
+                        <li>
+                            <strong style="color: #333;">Preprocessing Status:</strong>
+                            <span id="metaPrepStatus" style="color: #666;"></span>
+                        </li>
+                        <li>
+                            <strong style="color: #333;">Model Version:</strong>
+                            <span id="metaModelVersion" style="color: #666;"></span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Predictions Tab -->
+            <div class="tab-content" id="predictionsTab">
+                <div class="analysis-details">
+                    <h4 style="color: #333; margin-bottom: 15px;">Raw Predictions</h4>
+                    <p style="color: #666; margin-bottom: 15px;">Detailed prediction scores from the neural network model</p>
+                    <ul class="detail-list" id="predictionsList">
+                        <li style="color: #666;">Loading predictions...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Report Tab -->
+            <div class="tab-content" id="reportTab">
+                <div class="analysis-details">
+                    <h4 style="color: #333; margin-bottom: 20px;">Clinical Report</h4>
+                    <div style="margin-top: 20px; line-height: 1.8; color: #333;">
+                        <p><strong>Patient Examination Report</strong></p>
+                        <p style="margin-top: 15px;">
+                            <strong>Image:</strong> <span id="reportFilename"></span><br>
+                            <strong>Analysis Date:</strong> <span id="reportDate"></span><br>
+                            <strong>Prediction:</strong> <span id="reportPrediction"></span><br>
+                            <strong>Confidence Score:</strong> <span id="reportConfidence"></span>
+                        </p>
+                        <p style="margin-top: 15px;">
+                            <strong>Findings:</strong><br>
+                            <span id="reportFindings"></span>
+                        </p>
+                        <p style="margin-top: 15px;">
+                            <strong>Recommendation:</strong><br>
+                            <span id="reportRecommendation"></span>
+                        </p>
+                        <p style="margin-top: 15px; font-size: 12px; color: #999;">
+                            <em>Note: This report is generated by automated AI analysis and should be reviewed by a qualified radiologist or medical professional.</em>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); border: 2px solid #667eea;">
+            <h3 style="color: #333; margin-bottom: 20px;">🚀 Quick Actions</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <a href="/upload/" class="btn btn-primary" style="text-decoration: none; text-align: center; padding: 15px;">🩻 New Prediction</a>
+                <a href="/results/" class="btn btn-secondary" style="text-decoration: none; text-align: center; padding: 15px; background: white; border: 2px solid #667eea; color: #667eea;">📋 View All Results</a>
+                <button class="btn" onclick="exportPDF()" style="background: #10b981; color: white; padding: 15px;">📄 Export Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header" style="color: #333;">Confirm Deletion</div>
+            <div class="modal-body" style="color: #666;">
+                Are you sure you want to delete this result? This action cannot be undone.
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()" style="background: #ef4444; color: white;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div class="modal" id="imageViewerModal" style="display: none;">
+        <div class="modal-content" style="max-width: 90vw; max-height: 90vh;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color: #333;">X-Ray Image</h3>
+                <button class="close-btn" onclick="closeImageViewer()" style="background: none; border: none; font-size: 32px; cursor: pointer; color: #666;">&times;</button>
+            </div>
+            <div style="text-align: center; padding: 20px;">
+                <img id="viewerImage" style="max-width: 100%; max-height: 70vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentResult = null;
+
+        // Initialize page with template data
+        document.addEventListener('DOMContentLoaded', function() {
+            const result = {
+                id: {{ result.id }},
+                prediction_label: '{{ result.prediction_label }}',
+                confidence_percentage: {{ result.confidence_percentage }},
+                confidence_level: '{{ result.confidence_level }}',
+                confidence_score: {{ result.confidence_score }},
+                processing_time: {{ result.processing_time }},
+                created_at: '{{ result.created_at.isoformat }}',
+                model_version: '{{ result.model_version }}',
+                image: {
+                    id: {{ image.id }},
+                    original_filename: '{{ image.original_filename }}',
+                    file_path: '{{ image.file_path }}',
+                    file_size_mb: {{ image.file_size_mb }},
+                    image_format: '{{ image.image_format }}',
+                    width: {{ image.width }},
+                    height: {{ image.height }},
+                    upload_time: '{{ image.upload_time.isoformat }}',
+                    is_preprocessed: {{ image.is_preprocessed|lower }}
+                },
+                raw_predictions: {{ raw_predictions|safe }}
+            };
+            
+            currentResult = result;
+            displayResult(result);
+        });
+
+        function displayResult(result) {
+            const isPneumonia = result.prediction_label === 'PNEUMONIA';
+
+            // Apply color-coded card styling
+            const resultCard = document.getElementById('resultCard');
+            if (isPneumonia) {
+                resultCard.classList.add('result-pneumonia');
+            } else {
+                resultCard.classList.add('result-normal');
+            }
+
+            // Header
+            document.getElementById('pageTitle').textContent = result.image.original_filename;
+            document.getElementById('filename').textContent = `Analyzed on ${new Date(result.created_at).toLocaleDateString()}`;
+
+            // Image
+            document.getElementById('resultImage').src = result.image.file_path;
+
+            // Result Badge
+            const badge = document.getElementById('resultBadge');
+            if (isPneumonia) {
+                badge.innerHTML = '<span class="badge-pneumonia">⚠️ PNEUMONIA DETECTED</span>';
+            } else {
+                badge.innerHTML = '<span class="badge-normal">✓ NORMAL</span>';
+            }
+
+            // Confidence
+            const confBar = document.getElementById('confBar');
+            confBar.className = 'confidence-progress-large ' + (isPneumonia ? 'confidence-bar-pneumonia' : 'confidence-bar-normal');
+            setTimeout(() => {
+                confBar.style.width = result.confidence_percentage + '%';
+                confBar.textContent = result.confidence_percentage.toFixed(1) + '%';
+            }, 100);
+            
+            document.getElementById('confText').textContent = result.confidence_percentage.toFixed(1) + '% Confidence';
+            document.getElementById('confText').style.color = isPneumonia ? '#ef4444' : '#10b981';
+
+            // Level Badge
+            const levelBadge = document.getElementById('levelBadge');
+            levelBadge.textContent = result.confidence_level + ' Confidence';
+            levelBadge.className = 'level-badge level-' + result.confidence_level.toLowerCase();
+
+            // Recommendation
+            const recommendation = document.getElementById('recommendation');
+            if (isPneumonia) {
+                recommendation.innerHTML = '⚠️ <strong style="color: #ef4444;">Pneumonia indicators detected.</strong> Clinical correlation and confirming imaging by a qualified radiologist is strongly recommended. Additional testing and medical consultation may be indicated. This AI analysis should be used as a supplementary diagnostic tool only.';
+            } else {
+                recommendation.innerHTML = '✓ <strong style="color: #10b981;">No pneumonia indicators detected.</strong> The chest X-ray appears normal based on AI analysis. Continue routine monitoring. If symptoms persist or worsen, consult with a healthcare professional for comprehensive evaluation.';
+            }
+
+            // Details Grid
+            document.getElementById('detailResult').textContent = result.prediction_label;
+            document.getElementById('detailResult').style.color = isPneumonia ? '#ef4444' : '#10b981';
+            document.getElementById('detailLevel').textContent = result.confidence_level;
+            document.getElementById('detailTime').textContent = result.processing_time.toFixed(2) + 's';
+            document.getElementById('detailDate').textContent = new Date(result.created_at).toLocaleString();
+            document.getElementById('detailFormat').textContent = result.image.image_format || 'Unknown';
+            document.getElementById('detailDimensions').textContent = `${result.image.width} × ${result.image.height} px`;
+
+            // Metadata Tab
+            document.getElementById('metaFilename').textContent = result.image.original_filename;
+            document.getElementById('metaFileSize').textContent = result.image.file_size_mb.toFixed(2) + ' MB';
+            document.getElementById('metaFormat').textContent = result.image.image_format;
+            document.getElementById('metaDimensions').textContent = `${result.image.width} × ${result.image.height} px`;
+            document.getElementById('metaUploadDate').textContent = new Date(result.image.upload_time).toLocaleString();
+            document.getElementById('metaAnalysisDate').textContent = new Date(result.created_at).toLocaleString();
+            document.getElementById('metaProcTime').textContent = result.processing_time.toFixed(2) + ' seconds';
+            document.getElementById('metaPrepStatus').textContent = result.image.is_preprocessed ? 'Completed' : 'Pending';
+            document.getElementById('metaModelVersion').textContent = result.model_version || 'Default (MobileNetV2)';
+
+            // Predictions Tab
+            if (result.raw_predictions) {
+                try {
+                    const preds = typeof result.raw_predictions === 'string' 
+                        ? JSON.parse(result.raw_predictions) 
+                        : result.raw_predictions;
+                    
+                    let predHtml = '';
+                    if (preds.NORMAL !== undefined) {
+                        predHtml += `<li><strong style="color: #333;">Normal Probability:</strong><span style="color: #10b981; font-weight: 600;">${(preds.NORMAL * 100).toFixed(2)}%</span></li>`;
+                    }
+                    if (preds.PNEUMONIA !== undefined) {
+                        predHtml += `<li><strong style="color: #333;">Pneumonia Probability:</strong><span style="color: #ef4444; font-weight: 600;">${(preds.PNEUMONIA * 100).toFixed(2)}%</span></li>`;
+                    }
+                    document.getElementById('predictionsList').innerHTML = predHtml || '<li style="color: #666;">No raw predictions available</li>';
+                } catch (e) {
+                    document.getElementById('predictionsList').innerHTML = '<li style="color: #ef4444;">Error parsing predictions</li>';
+                }
+            }
+
+            // Report Tab
+            document.getElementById('reportFilename').textContent = result.image.original_filename;
+            document.getElementById('reportDate').textContent = new Date(result.created_at).toLocaleString();
+            document.getElementById('reportPrediction').textContent = result.prediction_label;
+            document.getElementById('reportPrediction').style.color = isPneumonia ? '#ef4444' : '#10b981';
+            document.getElementById('reportConfidence').textContent = result.confidence_percentage.toFixed(1) + '%';
+            
+            const findings = isPneumonia 
+                ? 'AI analysis indicates presence of features consistent with pneumonia. The model detected patterns in the chest X-ray that suggest pneumonia may be present. These findings should be correlated with clinical symptoms and patient history.'
+                : 'AI analysis indicates no significant features consistent with pneumonia. The chest X-ray appears normal with no detected abnormalities. Lung fields appear clear bilaterally.';
+            
+            const reportRec = isPneumonia
+                ? 'Clinical correlation and confirming imaging by a radiologist is strongly recommended. Additional diagnostic tests such as complete blood count, blood culture, or CT scan may be indicated based on clinical presentation. Immediate medical consultation advised.'
+                : 'Continue routine monitoring. No immediate action required based on imaging. If respiratory symptoms develop or worsen, seek medical evaluation. Follow-up imaging may be considered based on clinical judgment.';
+            
+            document.getElementById('reportFindings').textContent = findings;
+            document.getElementById('reportRecommendation').textContent = reportRec;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function openImageViewer() {
+            document.getElementById('viewerImage').src = document.getElementById('resultImage').src;
+            document.getElementById('imageViewerModal').style.display = 'flex';
+        }
+
+        function closeImageViewer() {
+            document.getElementById('imageViewerModal').style.display = 'none';
+        }
+
+        function exportPDF() {
+            if (!currentResult) return;
+            
+            const isPneumonia = currentResult.prediction_label === 'PNEUMONIA';
+            const printWindow = window.open('', '', 'width=900,height=600');
+            const reportContent = `
+                <html>
+                <head>
+                    <title>Pneumonia Diagnosis Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+                        h1 { color: #333; border-bottom: 3px solid ${isPneumonia ? '#ef4444' : '#10b981'}; padding-bottom: 10px; }
+                        .report-section { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 8px; }
+                        .divider { border-top: 1px solid #ddd; margin: 20px 0; }
+                        .warning { color: #ef4444; font-weight: bold; }
+                        .normal { color: #10b981; font-weight: bold; }
+                        .highlight { background: ${isPneumonia ? '#ffebee' : '#e8f5e9'}; padding: 15px; border-left: 4px solid ${isPneumonia ? '#ef4444' : '#10b981'}; margin: 15px 0; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🩻 Pneumonia AI Diagnosis Report</h1>
+                    <div class="report-section">
+                        <strong>Filename:</strong> ${currentResult.image.original_filename}<br>
+                        <strong>Analysis Date:</strong> ${new Date(currentResult.created_at).toLocaleString()}<br>
+                        <strong>Processing Time:</strong> ${currentResult.processing_time.toFixed(2)} seconds<br>
+                        <strong>Model:</strong> MobileNetV2 AI Detection System
+                    </div>
+                    <div class="divider"></div>
+                    <div class="highlight">
+                        <strong>Result:</strong> <span class="${isPneumonia ? 'warning' : 'normal'}">${currentResult.prediction_label}</span><br>
+                        <strong>Confidence:</strong> ${currentResult.confidence_percentage.toFixed(1)}%<br>
+                        <strong>Confidence Level:</strong> ${currentResult.confidence_level}
+                    </div>
+                    <div class="divider"></div>
+                    <div class="report-section">
+                        <h3>Findings</h3>
+                        <p>${isPneumonia 
+                            ? 'AI analysis indicates presence of features consistent with pneumonia. The model detected patterns in the chest X-ray that suggest pneumonia may be present.' 
+                            : 'AI analysis indicates no significant features consistent with pneumonia. The chest X-ray appears normal with no detected abnormalities.'}</p>
+                    </div>
+                    <div class="report-section">
+                        <h3>Recommendation</h3>
+                        <p>${isPneumonia
+                            ? 'Clinical correlation and confirming imaging by a radiologist is strongly recommended. Additional diagnostic testing may be indicated.'
+                            : 'Continue routine monitoring. No immediate action required based on imaging. Follow-up if symptoms develop.'}</p>
+                    </div>
+                    <p style="margin-top: 40px; font-size: 12px; color: #999; border-top: 2px solid #ddd; padding-top: 20px;">
+                        <em><strong>IMPORTANT DISCLAIMER:</strong> This report is generated by automated AI analysis and should be reviewed by a qualified radiologist or medical professional. This system is designed as a diagnostic assistance tool and should NOT be used as the sole basis for clinical diagnosis.</em>
+                    </p>
+                    <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                        Generated by PneumoAI Medical Diagnostics System | © 2026
+                    </p>
+                </body>
+                </html>
+            `;
+            printWindow.document.write(reportContent);
+            printWindow.document.close();
+            setTimeout(() => printWindow.print(), 250);
+        }
+
+        function deleteResult() {
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+        }
+
+        async function confirmDelete() {
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = getCookie('csrftoken');
+            
+            try {
+                const response = await fetch(`/api/results/${resultId}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (response.status === 204 || response.ok) {
+                    alert('Result deleted successfully');
+                    window.location.href = '/results/';
+                }
+            } catch (error) {
+                alert('Error deleting result. Please try again.');
+                console.error('Delete error:', error);
+            }
+        }
+
+        // Close modal on outside click
+        document.getElementById('deleteModal').addEventListener('click', (e) => {
+            if (e.target.id === 'deleteModal') {
+                closeDeleteModal();
+            }
+        });
+
+        document.getElementById('imageViewerModal').addEventListener('click', (e) => {
+            if (e.target.id === 'imageViewerModal') {
+                closeImageViewer();
+            }
+        });
+    </script>
+{% endblock %}

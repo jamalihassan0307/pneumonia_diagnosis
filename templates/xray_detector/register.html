@@ -1,0 +1,944 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PneumoAI - Medical Diagnostics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #9f7aea;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --black: #000000;
+            --white: #ffffff;
+            --gray: #f0f1f3;
+            --gray-2: #6b7280;
+            --text-dark: #1f2937;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            min-height: 100vh;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            height: 100vh;
+        }
+
+        .col {
+            width: 50%;
+        }
+
+        .align-items-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .form-wrapper {
+            width: 100%;
+            max-width: 28rem;
+            padding: 2rem;
+        }
+
+        .form {
+            padding: 2.5rem;
+            background-color: var(--white);
+            border-radius: 1.5rem;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            transform: scale(0);
+            transition: .5s ease-in-out;
+            transition-delay: 1s;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-header .logo {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .form-header h2 {
+            color: var(--text-dark);
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-header p {
+            color: var(--gray-2);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .input-group {
+            position: relative;
+            width: 100%;
+            margin: 1.2rem 0;
+        }
+
+        .input-group i {
+            position: absolute;
+            top: 50%;
+            left: 1.2rem;
+            transform: translateY(-50%);
+            font-size: 1.3rem;
+            color: var(--gray-2);
+            transition: color 0.3s ease;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3.2rem;
+            font-size: 0.95rem;
+            background-color: var(--gray);
+            border-radius: 0.75rem;
+            border: 2px solid transparent;
+            outline: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .input-group input:hover {
+            background-color: #e8eaf0;
+        }
+
+        .input-group input:focus {
+            border: 2px solid var(--primary-color);
+            background-color: var(--white);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-group input:focus ~ i {
+            color: var(--primary-color);
+        }
+
+        .form button {
+            cursor: pointer;
+            width: 100%;
+            padding: 1rem 0;
+            border-radius: 0.75rem;
+            border: none;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--white);
+            font-size: 1.1rem;
+            font-weight: 700;
+            outline: none;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .form button:hover::before {
+            left: 100%;
+        }
+
+        .form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .form button:active {
+            transform: translateY(0);
+        }
+
+        .form p {
+            margin: 1.2rem 0 0.5rem;
+            font-size: 0.9rem;
+            color: var(--gray-2);
+            font-weight: 500;
+        }
+
+        .form p b {
+            color: var(--primary-color);
+            font-weight: 700;
+            transition: color 0.3s ease;
+        }
+
+        .form p b:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .pointer {
+            cursor: pointer;
+        }
+
+        .container.sign-in .form.sign-in,
+        .container.sign-up .form.sign-up {
+            transform: scale(1);
+        }
+
+        .content-row {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 6;
+            width: 100%;
+        }
+
+        .text {
+            margin: 4rem;
+            color: var(--white);
+            max-width: 500px;
+        }
+
+        .text h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 1.5rem 0;
+            transition: 1s ease-in-out;
+            line-height: 1.2;
+        }
+
+        .text p {
+            font-weight: 600;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            transition: 1s ease-in-out;
+            transition-delay: .2s;
+            opacity: 0.95;
+        }
+
+        .medical-icon {
+            font-size: 8rem;
+            margin: 2rem 0;
+            transition: 1s ease-in-out;
+            transition-delay: .4s;
+            opacity: 0.9;
+        }
+
+        .text.sign-in h2,
+        .text.sign-in p,
+        .text.sign-in .medical-icon {
+            transform: translateX(-250%);
+        }
+
+        .text.sign-up h2,
+        .text.sign-up p,
+        .text.sign-up .medical-icon {
+            transform: translateX(250%);
+        }
+
+        .container.sign-in .text.sign-in h2,
+        .container.sign-in .text.sign-in p,
+        .container.sign-in .text.sign-in .medical-icon,
+        .container.sign-up .text.sign-up h2,
+        .container.sign-up .text.sign-up p,
+        .container.sign-up .text.sign-up .medical-icon {
+            transform: translateX(0);
+        }
+
+        /* BACKGROUND ANIMATION */
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: 300vw;
+            transform: translate(35%, 0);
+            background: linear-gradient(-45deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--accent-color) 100%);
+            transition: 1s ease-in-out;
+            z-index: 6;
+            box-shadow: 0 5px 50px rgba(0, 0, 0, 0.3);
+            border-bottom-right-radius: max(50vw, 50vh);
+            border-top-left-radius: max(50vw, 50vh);
+        }
+
+        .container.sign-in::before {
+            transform: translate(0, 0);
+            right: 50%;
+        }
+
+        .container.sign-up::before {
+            transform: translate(100%, 0);
+            right: 50%;
+        }
+
+        /* Error Message */
+        .error-message {
+            background: linear-gradient(135deg, #fee 0%, #fdd 100%);
+            color: var(--danger-color);
+            padding: 1rem 1.2rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--danger-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.2);
+            animation: shake 0.5s ease-in-out;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--gray);
+            color: var(--gray-2);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* RESPONSIVE */
+        @media only screen and (max-width: 768px) {
+            .container::before,
+            .container.sign-in::before,
+            .container.sign-up::before {
+                height: 100vh;
+                border-bottom-right-radius: 0;
+                border-top-left-radius: 0;
+                z-index: 0;
+                transform: none;
+                right: 0;
+            }
+
+            .container.sign-in .col.sign-in,
+            .container.sign-up .col.sign-up {
+                transform: translateY(0);
+            }
+
+            .content-row {
+                align-items: flex-start !important;
+            }
+
+            .content-row .col {
+                transform: translateY(0);
+                background-color: unset;
+            }
+
+            .col {
+                width: 100%;
+                position: absolute;
+                padding: 2rem;
+                background-color: var(--white);
+                border-top-left-radius: 2rem;
+                border-top-right-radius: 2rem;
+                transform: translateY(100%);
+                transition: 1s ease-in-out;
+            }
+
+            .row {
+                align-items: flex-end;
+                justify-content: flex-end;
+            }
+
+            .form {
+                box-shadow: none;
+                margin: 0;
+                padding: 1.5rem;
+            }
+
+            .text {
+                margin: 2rem 1rem;
+            }
+
+            .text p {
+                display: none;
+            }
+
+            .text h2 {
+                margin: .5rem 0;
+                font-size: 2rem;
+            }
+
+            .medical-icon {
+                font-size: 5rem;
+                margin: 1rem 0;
+            }
+
+            .form-wrapper {
+                padding: 1rem;
+            }
+        }
+
+        @media only screen and (max-width: 425px) {
+            .text h2 {
+                font-size: 1.8rem;
+            }
+
+            .form-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .form-header .logo {
+                font-size: 3rem;
+            }
+
+            .medical-icon {
+                font-size: 4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container" class="container">
+        <!-- FORM SECTION -->
+        <div class="row">
+            <!-- SIGN UP -->
+            <div class="col align-items-center flex-col sign-up">
+                <div class="form-wrapper align-items-center">
+                    <form class="form sign-up" method="post" action="{% url 'xray_detector:register' %}">
+                        {% csrf_token %}
+                        <div class="form-header">
+                            <div class="logo">🫁</div>
+                            <h2>Create Account</h2>
+                            <p>Join PneumoAI Medical Diagnostics</p>
+                        </div>
+
+                        <div class="error-message {% if error %}active{% endif %}" id="signupError">
+                            {% if error %}{{ error }}{% endif %}
+                        </div>
+
+                        <div class="input-group">
+                            <input type="text" name="username" placeholder="Username" required>
+                            <i class='bx bxs-user'></i>
+                        </div>
+                        <div class="input-group">
+                            <input type="email" name="email" placeholder="Email Address" required>
+                            <i class='bx bx-mail-send'></i>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" name="password1" placeholder="Password" required>
+                            <i class='bx bxs-lock-alt'></i>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" name="password2" placeholder="Confirm Password" required>
+                            <i class='bx bxs-lock-alt'></i>
+                        </div>
+                        <button type="submit">
+                            Sign Up
+                        </button>
+                        <p>
+                            <span>Already have an account? </span>
+                            <b onclick="switchToSignIn()" class="pointer">Sign in here</b>
+                        </p>
+                        <div class="footer-note">
+                            🔒 Secure Registration | Data Protected
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- END SIGN UP -->
+
+            <!-- SIGN IN -->
+            <div class="col align-items-center flex-col sign-in">
+                <div class="form-wrapper align-items-center">
+                    <form class="form sign-in" method="post" action="{% url 'xray_detector:login' %}">
+                        {% csrf_token %}
+                        <div class="form-header">
+                            <div class="logo">🫁</div>
+                            <h2>Welcome Back</h2>
+                            <p>Sign in to PneumoAI Dashboard</p>
+                        </div>
+
+                        <div class="error-message" id="signinError"></div>
+
+                        <div class="input-group">
+                            <input type="text" name="username" placeholder="Username" required>
+                            <i class='bx bxs-user'></i>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" name="password" placeholder="Password" required>
+                            <i class='bx bxs-lock-alt'></i>
+                        </div>
+                        <button type="submit">
+                            Sign In
+                        </button>
+                        <p>
+                            <span>Don't have an account? </span>
+                            <b onclick="switchToSignUp()" class="pointer">Sign up here</b>
+                        </p>
+                        <div class="footer-note">
+                            🔒 HIPAA Compliant | Secure Platform
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- END SIGN IN -->
+        </div>
+        <!-- END FORM SECTION -->
+
+        <!-- CONTENT SECTION -->
+        <div class="row content-row">
+            <!-- SIGN IN CONTENT -->
+            <div class="col align-items-center flex-col">
+                <div class="text sign-in">
+                    <h2>Advanced AI-Powered Pneumonia Detection</h2>
+                    <p>Leverage cutting-edge deep learning technology for accurate respiratory health diagnostics. Join thousands of medical professionals using PneumoAI.</p>
+                    <div class="medical-icon">🩺</div>
+                </div>
+            </div>
+            <!-- END SIGN IN CONTENT -->
+
+            <!-- SIGN UP CONTENT -->
+            <div class="col align-items-center flex-col">
+                <div class="text sign-up">
+                    <div class="medical-icon">🧬</div>
+                    <h2>Transform Healthcare with AI</h2>
+                    <p>Join our medical AI platform and access state-of-the-art pneumonia detection technology. Start making faster, more accurate diagnoses today.</p>
+                </div>
+            </div>
+            <!-- END SIGN UP CONTENT -->
+        </div>
+        <!-- END CONTENT SECTION -->
+    </div>
+
+    <script>
+        let container = document.getElementById('container');
+
+        function toggle() {
+            container.classList.toggle('sign-in');
+            container.classList.toggle('sign-up');
+        }
+
+        function switchToSignIn() {
+            if (container.classList.contains('sign-up')) {
+                container.classList.remove('sign-up');
+                container.classList.add('sign-in');
+            }
+            // Update URL without reload
+            window.history.pushState({}, '', '{% url "xray_detector:login" %}');
+        }
+
+        function switchToSignUp() {
+            if (container.classList.contains('sign-in')) {
+                container.classList.remove('sign-in');
+                container.classList.add('sign-up');
+            }
+            // Update URL without reload
+            window.history.pushState({}, '', '{% url "xray_detector:register" %}');
+        }
+
+        // Initialize to sign-up view
+        setTimeout(() => {
+            container.classList.add('sign-up');
+        }, 200);
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function() {
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('register')) {
+                if (!container.classList.contains('sign-up')) {
+                    switchToSignUp();
+                }
+            } else {
+                if (!container.classList.contains('sign-in')) {
+                    switchToSignIn();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.03) 10px,
+                rgba(255, 255, 255, 0.03) 20px
+            );
+            animation: slide 20s linear infinite;
+        }
+
+        @keyframes slide {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .register-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+            width: 100%;
+            max-width: 520px;
+            padding: 45px;
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .register-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .register-header h1 {
+            color: #333;
+            font-size: 30px;
+            margin-bottom: 12px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .register-header p {
+            color: #666;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+        input[type="text"]:hover,
+        input[type="email"]:hover,
+        input[type="password"]:hover {
+            border-color: #d1d5db;
+            background: #ffffff;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1), 0 2px 8px rgba(102, 126, 234, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .register-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .register-btn:hover::before {
+            left: 100%;
+        }
+
+        .register-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .register-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-link {
+            text-align: center;
+            color: #666;
+            font-size: 15px;
+            margin-top: 25px;
+            font-weight: 500;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .login-link a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .login-link a:hover::after {
+            width: 100%;
+        }
+
+        .login-link a:hover {
+            color: #764ba2;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #fee 0%, #fdd 100%);
+            color: #c62828;
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-left: 5px solid #ef4444;
+            display: none;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .error-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .error-list li {
+            margin-bottom: 5px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 15px;
+            animation: pulse 2s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        .password-strength {
+            margin-top: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .strength-weak { color: #ef4444; }
+        .strength-medium { color: #f59e0b; }
+        .strength-strong { color: #10b981; }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px solid #f0f0f0;
+            color: #9ca3af;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .register-container {
+                padding: 35px 25px;
+            }
+
+            .register-header h1 {
+                font-size: 26px;
+            }
+
+            .logo {
+                font-size: 42px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .register-container {
+                padding: 30px 20px;
+            }
+
+            .register-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-header">
+            <div class="logo">🫁</div>
+            <h1>PneumoAI</h1>
+            <p>Create Your Medical AI Account</p>
+        </div>
+
+        <div class="error-message {% if error %}active{% endif %}" id="errorMessage">
+            {% if error %}{{ error }}{% endif %}
+        </div>
+
+        <form method="post" id="registerForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required placeholder="Choose a username">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="your.email@hospital.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Minimum 8 characters">
+            </div>
+
+            <div class="form-group">
+                <label for="passwordConfirm">Confirm Password</label>
+                <input type="password" id="passwordConfirm" name="password_confirm" required placeholder="Confirm password">
+            </div>
+
+            <button type="submit" class="register-btn">Create Account</button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="{% url 'xray_detector:login' %}">Login here</a>
+        </div>
+
+        <div class="footer-note">
+            🔒 Secure Registration | Your data is protected
+        </div>
+    </div>
+
+    <script>
+        // Django handles form submission and validation server-side
+    </script>
+</body>
+</html>

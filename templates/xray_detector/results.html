@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Results - Pneumonia Diagnosis System{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/results.css' %}">
+{% endblock %}
+
+{% block nav_results %}active{% endblock %}
+
+{% block content %}
+    <div class="main-container">
+        <div class="page-header">
+            <h1>📋 Analysis History</h1>
+            <p style="color: #666; margin-top: 10px;">View and manage all your X-ray analysis results</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="card">
+            <h3 style="color: #333; margin-bottom: 20px;">🔍 Filter Results</h3>
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Filter by Result</label>
+                    <select id="filterResult">
+                        <option value="">All Results</option>
+                        <option value="NORMAL">Normal</option>
+                        <option value="PNEUMONIA">Pneumonia</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Filter by Confidence</label>
+                    <select id="filterConfidence">
+                        <option value="">All Confidence Levels</option>
+                        <option value="HIGH">High (&gt;95%)</option>
+                        <option value="MODERATE">Moderate (80-95%)</option>
+                        <option value="LOW">Low (&lt;80%)</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Date From</label>
+                    <input type="date" id="dateFrom">
+                </div>
+                <div class="filter-group">
+                    <label>Date To</label>
+                    <input type="date" id="dateTo">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="filter-btn" onclick="applyFilters()">🔍 Apply Filters</button>
+                <button class="filter-btn" style="background: #6c757d; color: white;" onclick="clearFilters()">✖ Clear Filters</button>
+                <button class="filter-btn" style="background: #10b981; color: white; margin-left: auto;" onclick="exportCSV()">📥 Export CSV</button>
+            </div>
+        </div>
+
+        <!-- View Toggle -->
+        <div class="view-toggle">
+            <button class="toggle-btn active" onclick="switchView('grid')">📊 Grid View</button>
+            <button class="toggle-btn" onclick="switchView('table')">📋 Table View</button>
+        </div>
+
+        <!-- Results Grid -->
+        <div id="gridView" style="display: block;">
+            <div class="results-grid" id="resultsGrid">
+                <!-- Results will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Results Table -->
+        <div id="tableView" style="display: none;">
+            <div class="card">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th style="color: #333;">Filename</th>
+                            <th style="color: #333;">Result</th>
+                            <th style="color: #333;">Confidence</th>
+                            <th style="color: #333;">Level</th>
+                            <th style="color: #333;">Date</th>
+                            <th style="color: #333;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTable">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #999;">Loading results...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" style="display: none;">
+            <div class="card">
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <div class="empty-title" style="color: #333;">No Results Found</div>
+                    <div class="empty-text">You haven't uploaded any X-ray images yet. Upload your first image to get started!</div>
+                    <a href="/upload/" class="go-back-btn">🩻 Upload X-Ray</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load results from API
+        let allResults = [];
+
+        // Initialize on load
+document.addEventListener('DOMContentLoaded', function() {
+            loadResults();
+        });
+
+        async function loadResults() {
+            try {
+                const response = await fetch('/api/results/', {
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    allResults = data.results;
+                    displayResults(allResults);
+                } else {
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('Error loading results:', error);
+                showEmptyState();
+            }
+        }
+
+        // Display results
+        function displayResults(results) {
+            if (results.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('gridView').style.display = 'block';
+            document.getElementById('tableView').style.display = 'none';
+
+            // Grid view
+            const gridHtml = results.map(result => {
+                const isPneumonia = result.prediction_label === 'PNEUMONIA';
+                const badgeClass = isPneumonia ? 'pneumonia' : 'normal';
+                const badgeStyle = isPneumonia 
+                    ? 'background: #ffcdd2; color: #c62828;' 
+                    : 'background: #c8e6c9; color: #2e7d32;';
+                
+                return `
+                    <div class="result-card" style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s ease;">
+                        <div class="result-card-image" style="width: 100%; height: 200px; background: #f5f7fa; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #eee;">
+                            <img src="${result.image.file_path}" alt="X-ray" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.parentElement.innerHTML='<span style=&quot;color: #999;&quot;>🩻 X-Ray Image</span>'">
+                        </div>
+                        <div class="result-card-content" style="padding: 20px;">
+                            <div class="result-filename" style="font-weight: 600; color: #333; margin-bottom: 15px; word-break: break-word; font-size: 14px;">${result.image.original_filename}</div>
+                            <div class="result-prediction" style="margin-bottom: 15px;">
+                                <span class="prediction-badge ${badgeClass}" style="padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 12px; ${badgeStyle}">
+                                    ${result.prediction_label}
+                                </span>
+                            </div>
+                            <div class="result-confidence" style="margin-bottom: 15px;">
+                                <div class="confidence-label" style="font-size: 12px; color: #666; margin-bottom: 5px;">Confidence</div>
+                                <div class="confidence-bar-small" style="background: #f0f0f0; border-radius: 10px; height: 8px; overflow: hidden;">
+                                    <div class="confidence-progress" style="height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); width: ${result.confidence_percentage}%; transition: width 0.5s ease;"></div>
+                                </div>
+                                <div class="confidence-percentage" style="font-size: 14px; font-weight: 600; color: #333; margin-top: 5px;">${result.confidence_percentage.toFixed(1)}%</div>
+                            </div>
+                            <div class="result-meta" style="font-size: 12px; color: #666; margin-bottom: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                                ${new Date(result.created_at).toLocaleString()}
+                            </div>
+                            <div class="result-actions">
+                                <a href="/result-detail/?id=${result.id}" class="action-btn view-btn" style="display: block; padding: 10px; background: #667eea; color: white; text-align: center; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; transition: all 0.3s ease;" onmouseover="this.style.background='#5568d3'" onmouseout="this.style.background='#667eea'">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('resultsGrid').innerHTML = gridHtml;
+
+            // Table view
+            const tableHtml = results.map(result => {
+                const isPneumonia = result.prediction_label === 'PNEUMONIA';
+                const badgeStyle = isPneumonia 
+                    ? 'background: #ffcdd2; color: #c62828;' 
+                    : 'background: #c8e6c9; color: #2e7d32;';
+                
+                return `
+                    <tr>
+                        <td style="color: #333;">${result.image.original_filename}</td>
+                        <td>
+                            <span class="badge ${result.prediction_label.toLowerCase()}" style="padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 12px; ${badgeStyle}">
+                                ${result.prediction_label}
+                            </span>
+                        </td>
+                        <td style="color: #333;">${result.confidence_percentage.toFixed(1)}%</td>
+                        <td style="color: #333;">${result.confidence_level}</td>
+                        <td style="color: #333;">${new Date(result.created_at).toLocaleString()}</td>
+                        <td>
+                            <a href="/result-detail/?id=${result.id}" class="action-btn view-btn" style="padding: 6px 12px; background: #667eea; color: white; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px;">View</a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('resultsTable').innerHTML = tableHtml || '<tr><td colspan="6" style="text-align: center; color: #999;">No results found</td></tr>';
+        }
+
+        // Show empty state
+        function showEmptyState() {
+            document.getElementById('resultsGrid').innerHTML = '';
+            document.getElementById('resultsTable').innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No results found</td></tr>';
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('gridView').style.display = 'none';
+        }
+
+        // Switch view
+        function switchView(view) {
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (view === 'grid') {
+                document.getElementById('gridView').style.display = 'block';
+                document.getElementById('tableView').style.display = 'none';
+            } else {
+                document.getElementById('gridView').style.display = 'none';
+                document.getElementById('tableView').style.display = 'block';
+            }
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const prediction = document.getElementById('filterResult').value;
+            const confidence = document.getElementById('filterConfidence').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+
+            let filtered = allResults;
+
+            if (prediction) {
+                filtered = filtered.filter(r => r.prediction_label=== prediction);
+            }
+
+            if (confidence) {
+                filtered = filtered.filter(r => r.confidence_level === confidence);
+            }
+
+            if (dateFrom) {
+                filtered = filtered.filter(r => new Date(r.created_at) >= new Date(dateFrom));
+            }
+
+            if (dateTo) {
+                const dateToEnd = new Date(dateTo);
+                dateToEnd.setHours(23, 59, 59, 999);
+                filtered = filtered.filter(r => new Date(r.created_at) <= dateToEnd);
+            }
+
+            if (filtered.length === 0) {
+                showEmptyState();
+            } else {
+                displayResults(filtered);
+            }
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('filterResult').value = '';
+            document.getElementById('filterConfidence').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            displayResults(allResults);
+        }
+
+        // Export CSV
+        function exportCSV() {
+            if (allResults.length === 0) {
+                alert('No results to export');
+                return;
+            }
+
+            let csv = 'Filename,Result,Confidence,Level,Date\n';
+            allResults.forEach(result => {
+                csv += `"${result.image.original_filename}","${result.prediction_label}","${result.confidence_percentage.toFixed(1)}%","${result.confidence_level}","${new Date(result.created_at).toLocaleString()}"\n`;
+            });
+
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
+            element.setAttribute('download', 'analysis_history_' + new Date().toISOString().split('T')[0] + '.csv');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+    </script>
+{% endblock %}

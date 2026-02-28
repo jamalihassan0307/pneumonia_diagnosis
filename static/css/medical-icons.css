@@ -1,0 +1,176 @@
+/* ========================================
+   MEDICAL ICON SYSTEM
+   SVG-based medical icons for the diagnosis system
+   ======================================== */
+
+.medical-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Lung Icon */
+.icon-lungs::before {
+    content: '🫁';
+    font-size: inherit;
+}
+
+/* X-Ray Icon */
+.icon-xray::before {
+    content: '🩻';
+    font-size: inherit;
+}
+
+/* Medical Cross */
+.icon-medical::before {
+    content: '⚕️';
+    font-size: inherit;
+}
+
+/* Checkmark (Normal) */
+.icon-check::before {
+    content: '✓';
+    font-size: inherit;
+    color: var(--normal);
+}
+
+/* Warning (Pneumonia) */
+.icon-warning::before {
+    content: '⚠';
+    font-size: inherit;
+    color: var(--pneumonia);
+}
+
+/* Stethoscope */
+.icon-stethoscope::before {
+    content: '🩺';
+    font-size: inherit;
+}
+
+/* DNA/Research */
+.icon-dna::before {
+    content: '🧬';
+    font-size: inherit;
+}
+
+/* Chart/Analytics */
+.icon-chart::before {
+    content: '📊';
+    font-size: inherit;
+}
+
+/* Upload */
+.icon-upload::before {
+    content: '📤';
+    font-size: inherit;
+}
+
+/* Download */
+.icon-download::before {
+    content: '📥';
+    font-size: inherit;
+}
+
+/* History/Clock */
+.icon-history::before {
+    content: '🕐';
+    font-size: inherit;
+}
+
+/* User/Profile */
+.icon-user::before {
+    content: '👤';
+    font-size: inherit;
+}
+
+/* Settings */
+.icon-settings::before {
+    content: '⚙️';
+    font-size: inherit;
+}
+
+/* Info */
+.icon-info::before {
+    content: 'ℹ️';
+    font-size: inherit;
+}
+
+/* Success */
+.icon-success::before {
+    content: '✔️';
+    font-size: inherit;
+}
+
+/* Error */
+.icon-error::before {
+    content: '❌';
+    font-size: inherit;
+}
+
+/* Alert */
+.icon-alert::before {
+    content: '⚡';
+    font-size: inherit;
+}
+
+/* Heart */
+.icon-heart::before {
+    content: '❤️';
+    font-size: inherit;
+}
+
+/* Brain */
+.icon-brain::before {
+    content: '🧠';
+    font-size: inherit;
+}
+
+/* Microscope */
+.icon-microscope::before {
+    content: '🔬';
+    font-size: inherit;
+}
+
+/* Document */
+.icon-document::before {
+    content: '📄';
+    font-size: inherit;
+}
+
+/* Animated Icon Effects */
+.icon-pulse {
+    animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.icon-rotate {
+    animation: iconRotate 2s linear infinite;
+}
+
+@keyframes iconRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.icon-bounce {
+    animation: iconBounce 1s ease-in-out infinite;
+}
+
+@keyframes iconBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.icon-heartbeat {
+    animation: iconHeartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes iconHeartbeat {
+    0%, 100% { transform: scale(1); }
+    10%, 30% { transform: scale(1.2); }
+    20%, 40% { transform: scale(1); }
+}
