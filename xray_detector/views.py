@@ -49,16 +49,22 @@ def register_view(request):
         return redirect('xray_detector:dashboard')
     
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        password_confirm = request.POST.get('password_confirm')
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+        password_confirm = request.POST.get('password_confirm', '').strip()
         
-        # Validate form
+        # Validate form - check all fields are provided
+        if not username or not email or not password or not password_confirm:
+            return render(request, 'xray_detector/register.html',
+                         {'error': 'All fields are required'})
+        
+        # Validate passwords match
         if password != password_confirm:
             return render(request, 'xray_detector/register.html',
                          {'error': 'Passwords do not match'})
         
+        # Validate password length
         if len(password) < 8:
             return render(request, 'xray_detector/register.html',
                          {'error': 'Password must be at least 8 characters'})
