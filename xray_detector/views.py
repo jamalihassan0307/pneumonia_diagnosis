@@ -51,8 +51,11 @@ def register_view(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()
-        password = request.POST.get('password', '').strip()
-        password_confirm = request.POST.get('password_confirm', '').strip()
+        # Form uses password1 and password2 (or password and password_confirm)
+        password = request.POST.get('password', '') or request.POST.get('password1', '')
+        password = password.strip()
+        password_confirm = request.POST.get('password_confirm', '') or request.POST.get('password2', '')
+        password_confirm = password_confirm.strip()
         
         # Debug: Log what we're receiving
         import logging
