@@ -38,15 +38,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+<<<<<<< HEAD:pneumonia_config/settings.py
     
     # Third-party apps
     'rest_framework',
     'corsheaders',
-    'drf_spectacular',
     
     # Local apps
-    'xray_detector',
     'model_service',
+=======
+    'rest_framework',
+    'rest_framework.authtoken',
+    'drf_spectacular',
+    'corsheaders',
+    'xray_detector',  # Our pneumonia detection app
+>>>>>>> 78d89b9f51d0fdbbd388483cf17b5a8558c3e832:pneumonia_diagnosis/settings.py
 ]
 
 MIDDLEWARE = [
@@ -183,6 +189,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8000',
 ]
 
+<<<<<<< HEAD:pneumonia_config/settings.py
 # ML Model Configuration
 ML_MODEL_PATH = BASE_DIR / 'model_service' / 'mobilenetv2.h5'
 ML_MODEL_INPUT_SIZE = (224, 224)
@@ -225,3 +232,7 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+=======
+# Token auth settings
+AUTH_USER_MODEL = 'auth.User'
+>>>>>>> 78d89b9f51d0fdbbd388483cf17b5a8558c3e832:pneumonia_diagnosis/settings.py
