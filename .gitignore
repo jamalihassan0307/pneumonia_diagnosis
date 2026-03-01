@@ -69,16 +69,6 @@ Thumbs.db
 .AppleDouble
 .LSOverride
 
-# ML/Data
-*.h5
-*.pkl
-*.pickle
-*.joblib
-*.npy
-*.npz
-*.pth
-model_service/mobilenetv2.h5
-
 # Large files
 *.zip
 *.tar.gz
@@ -91,26 +81,3 @@ model_service/mobilenetv2.h5
 tmp/
 temp/
 
-# IDE specific
-.settings/
-.project
-.pydevproject
-
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb
-
-# Node (if using npm for frontend)
-node_modules/
-npm-debug.log
-package-lock.json
-
-# pip
-requirements.txt.bak
-
-# Migrations (optional - remove if you want to track)
-# migrations/
-
-# Local development
-local_*.py
-*.local.py

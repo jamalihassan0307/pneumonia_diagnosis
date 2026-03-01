@@ -38,20 +38,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    # Third-party apps
     'rest_framework',
     'rest_framework.authtoken',
     'drf_spectacular',
     'corsheaders',
-    
-    # Local apps
-    'xray_detector',
+    'xray_detector',  # Our pneumonia detection app
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files serving
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -62,6 +57,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'pneumonia_diagnosis.urls'
+
 
 TEMPLATES = [
     {
