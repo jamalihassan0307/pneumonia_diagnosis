@@ -51,6 +51,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files serving
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -175,14 +176,6 @@ SPECTACULAR_SETTINGS = {
     ],
 }
 
-# CORS Configuration
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://localhost:8000',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:8000',
-]
-
 # ML Model Configuration
 ML_MODELS_PATH = BASE_DIR / 'ml_models'
 ML_MODEL_INPUT_SIZE = (224, 224)
@@ -216,6 +209,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:8000',
+    'https://pneumoniadiagnosis-production.up.railway.app',
+    'https://pneumoniadetector.pythonanywhere.com',
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -225,6 +220,16 @@ CORS_ALLOW_METHODS = [
     'PATCH',
     'POST',
     'PUT',
+]
+
+# CSRF Configuration - Allow requests from Railway and PythonAnywhere
+CSRF_TRUSTED_ORIGINS = [
+    'https://pneumoniadiagnosis-production.up.railway.app',
+    'https://pneumoniadetector.pythonanywhere.com',
+    'http://localhost:3000',
+    'http://localhost:8000',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:8000',
 ]
 
 # Token auth settings
