@@ -54,10 +54,25 @@ def register_view(request):
         password = request.POST.get('password', '').strip()
         password_confirm = request.POST.get('password_confirm', '').strip()
         
-        # Validate form - check all fields are provided
-        if not username or not email or not password or not password_confirm:
+        # Debug: Log what we're receiving
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Registration attempt - username: '{username}', email: '{email}', password length: {len(password) if password else 0}")
+        
+        # Validate form - check all fields are provided with more specific messages
+        errors = []
+        if not username:
+            errors.append('Username is required')
+        if not email:
+            errors.append('Email is required')
+        if not password:
+            errors.append('Password is required')
+        if not password_confirm:
+            errors.append('Please confirm your password')
+        
+        if errors:
             return render(request, 'xray_detector/register.html',
-                         {'error': 'All fields are required'})
+                         {'error': ', '.join(errors)})
         
         # Validate passwords match
         if password != password_confirm:
@@ -68,6 +83,11 @@ def register_view(request):
         if len(password) < 8:
             return render(request, 'xray_detector/register.html',
                          {'error': 'Password must be at least 8 characters'})
+        
+        # Validate email format
+        if '@' not in email:
+            return render(request, 'xray_detector/register.html',
+                         {'error': 'Please enter a valid email address'})
         
         # Check if username already exists
         if User.objects.filter(username=username).exists():
@@ -89,8 +109,9 @@ def register_view(request):
             login(request, user)
             return redirect('xray_detector:dashboard')
         except Exception as e:
+            logger.error(f"User creation error: {str(e)}")
             return render(request, 'xray_detector/register.html',
-                         {'error': 'Error creating account'})
+                         {'error': f'Error creating account: {str(e)}'})
     
     return render(request, 'xray_detector/register.html')
 
