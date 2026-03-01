@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
-from .services_tflite import predict_pneumonia, validate_image_file
+from .services import predict_pneumonia, validate_image_file
 from .models import UserHistory, XRayImage, PredictionResult, ModelVersion
 import logging
 import time

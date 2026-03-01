@@ -31,7 +31,7 @@ from .serializers import (
     DiagnosisRequestSerializer, DiagnosisResponseSerializer,
     UserHistorySerializer, ModelVersionSerializer
 )
-from .services_tflite import predict_pneumonia, validate_image_file
+from .services import predict_pneumonia, validate_image_file
 
 logger = logging.getLogger(__name__)
 
@@ -422,7 +422,7 @@ class XRayImageViewSet(viewsets.ModelViewSet):
             uploaded_file = request.FILES['image']
             
             # Validate file
-            from .services_tflite import validate_image_file
+            from .services import validate_image_file
             is_valid, error_message = validate_image_file(uploaded_file)
             if not is_valid:
                 return Response({
@@ -455,7 +455,7 @@ class XRayImageViewSet(viewsets.ModelViewSet):
             )
             
             # Analyze image
-            from .services_tflite import predict_pneumonia
+            from .services import predict_pneumonia
             start_time = time.time()
             uploaded_file.seek(0)
             prediction_result = predict_pneumonia(uploaded_file)
@@ -554,16 +554,17 @@ def api_model_info(request):
     
     GET /api/model/info/
     """
+    from .services import PneumoniaDetectionService
+    
     try:
-        # TFLite model info - simplified version
-        model_path = os.path.join(settings.ML_MODELS_PATH, 'mobilenetv2_pneumonia_model_quantized.tflite')
+        model = PneumoniaDetectionService.get_model()
         
-        if not os.path.exists(model_path):
+        if model is None:
             return Response({
                 'status': 'warning',
-                'message': 'Model file not found',
+                'message': 'Model not loaded - using demo mode',
                 'model_loaded': False,
-                'demo_mode': False
+                'demo_mode': True
             })
         
         return Response({
@@ -571,11 +572,10 @@ def api_model_info(request):
             'model_loaded': True,
             'demo_mode': False,
             'model_info': {
-                'model_type': 'TensorFlow Lite',
-                'model_name': 'MobileNetV2 (Quantized)',
-                'input_shape': '(1, 224, 224, 1)',
-                'output_shape': '(1, 1)',
-                'file_size_mb': round(os.path.getsize(model_path) / (1024*1024), 2)
+                'input_shape': str(model.input_shape),
+                'output_shape': str(model.output_shape),
+                'total_parameters': model.count_params() if hasattr(model, 'count_params') else None,
+                'source': PneumoniaDetectionService._model_loaded_from
             }
         })
     except Exception as e:
