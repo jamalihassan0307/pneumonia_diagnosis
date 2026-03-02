@@ -285,6 +285,7 @@
 
     <script>
         let currentResult = null;
+        let resultId = null;  // Initialize resultId for delete function
 
         // Initialize page with template data
         document.addEventListener('DOMContentLoaded', function() {
@@ -312,6 +313,7 @@
             };
             
             currentResult = result;
+            resultId = result.id;  // Set the result ID for delete function
             displayResult(result);
         });
 

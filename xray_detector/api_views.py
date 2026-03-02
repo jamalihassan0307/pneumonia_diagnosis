@@ -16,6 +16,10 @@ from django.conf import settings
 import time
 import json
 import os
+import logging
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from .models import XRayImage, PredictionResult, UserHistory, ModelVersion, ProcessingLog
 from .serializers import (
@@ -271,19 +275,29 @@ class PredictionResultViewSet(viewsets.ModelViewSet):
         return PredictionResult.objects.filter(image__user=self.request.user)
     
     def destroy(self, request, *args, **kwargs):
-        """Delete prediction result"""
+        """Delete prediction result and its image file from storage"""
         prediction = self.get_object()
         image = prediction.image
         
-        # Delete files from storage if they exist
+        # Delete image file from disk
         if image.file_path:
             try:
+                # Try to delete from filesystem directly
+                file_path = Path(settings.MEDIA_ROOT) / str(image.file_path)
+                if file_path.exists():
+                    file_path.unlink()  # Delete the file
+                    logger.info(f"Deleted image file: {file_path}")
+            except Exception as e:
+                logger.error(f"Error deleting image file: {str(e)}")
+            
+            try:
+                # Also try storage backend in case it's configured differently
                 if default_storage.exists(image.file_path.name):
                     default_storage.delete(image.file_path.name)
             except:
                 pass
         
-        # Delete database records
+        # Delete database records (this will cascade delete prediction result too)
         image.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
